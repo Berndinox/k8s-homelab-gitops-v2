@@ -37,4 +37,5 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - SkipHooks=true  # longhorn-pre-upgrade Job braucht RBAC das erst vom Chart erstellt wird
     # PSA-Labels werden von longhorn-prereqs App verwaltet (prereqs-application.yaml)
