@@ -19,14 +19,18 @@ spec:
         crds:
           enabled: true
         # ClusterIssuers deployed as extraObjects — after CRDs are installed
+        # extraObjects items must be YAML strings (not maps) — cert-manager chart
+        # uses tpl . $ which requires string input (extras-objects.yaml:3).
         extraObjects:
-          - apiVersion: cert-manager.io/v1
+          - |
+            apiVersion: cert-manager.io/v1
             kind: ClusterIssuer
             metadata:
               name: selfsigned
             spec:
               selfSigned: {}
-          - apiVersion: cert-manager.io/v1
+          - |
+            apiVersion: cert-manager.io/v1
             kind: Certificate
             metadata:
               name: homelab-ca
@@ -41,7 +45,8 @@ spec:
               issuerRef:
                 name: selfsigned
                 kind: ClusterIssuer
-          - apiVersion: cert-manager.io/v1
+          - |
+            apiVersion: cert-manager.io/v1
             kind: ClusterIssuer
             metadata:
               name: homelab-ca
