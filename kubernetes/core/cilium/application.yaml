@@ -1,0 +1,117 @@
+---
+# Cilium — ArgoCD managed (bootstrap script does initial install)
+# sync-wave -2: CNI must be ready before anything else
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cilium
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  project: default
+  source:
+    repoURL: https://helm.cilium.io
+    chart: cilium
+    targetRevision: 1.19.1
+    helm:
+      values: |
+        # --- IPAM ---
+        ipam:
+          mode: kubernetes
+
+        # --- kube-proxy replacement (full eBPF) ---
+        # Requires: cluster.proxy.disabled=true in Talos controlplane patch
+        kubeProxyReplacement: true
+
+        # --- Routing: native (no VXLAN tunnel) ---
+        # All 3 nodes are on the same L2 segment (VLAN 100), so native routing
+        # works without encapsulation. Cilium installs direct kernel routes
+        # between nodes automatically via autoDirectNodeRoutes.
+        routingMode: native
+        autoDirectNodeRoutes: true
+        ipv4NativeRoutingCIDR: 10.244.0.0/16
+
+        # --- IPv6: disabled ---
+        ipv6:
+          enabled: false
+
+        # --- eBPF optimizations ---
+        bpf:
+          masquerade: true
+          hostLegacyRouting: false
+          tproxy: true
+
+        # --- Load Balancer ---
+        loadBalancer:
+          algorithm: maglev
+          mode: hybrid
+          acceleration: disabled  # M920x eno1/bond: kein nativer XDP-Support
+
+        endpointRoutes:
+          enabled: true
+
+        bandwidthManager:
+          enabled: true
+          bbr: true
+
+        hostFirewall:
+          enabled: true
+
+        hostPort:
+          enabled: true
+
+        localRedirectPolicy: true
+
+        # --- BGP (peer config added separately via CiliumBGPPeeringPolicy) ---
+        bgpControlPlane:
+          enabled: true
+
+        # --- Hubble observability ---
+        hubble:
+          relay:
+            enabled: true
+          ui:
+            enabled: true
+
+        operator:
+          replicas: 1
+
+        # --- Talos-specific requirements ---
+        cgroup:
+          autoMount:
+            enabled: false
+          hostRoot: /sys/fs/cgroup
+        # KubePrism (localhost:7445) statt VIP — funktioniert auch ohne Netzwerk zum VIP
+        k8sServiceHost: localhost
+        k8sServicePort: 7445
+        # Talos blocks SYS_MODULE — these capabilities are required instead
+        securityContext:
+          capabilities:
+            ciliumAgent:
+              - CHOWN
+              - KILL
+              - NET_ADMIN
+              - NET_RAW
+              - IPC_LOCK
+              - SYS_ADMIN
+              - SYS_RESOURCE
+              - DAC_OVERRIDE
+              - FOWNER
+              - SETGID
+              - SETUID
+            cleanCiliumState:
+              - NET_ADMIN
+              - SYS_ADMIN
+              - SYS_RESOURCE
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    # NO automated sync — Cilium is the CNI backbone.
+    # If ArgoCD auto-syncs with broken values, all pods die and ArgoCD can't self-heal.
+    # Sync manually: argocd app sync cilium
+    syncOptions:
+      - ServerSideApply=true

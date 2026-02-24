@@ -1,0 +1,33 @@
+---
+machine:
+  network:
+    nameservers:
+      - 9.9.9.9         # Quad9 — Schweizer Non-Profit, GDPR, Malware-Blocking
+      - 149.112.112.112 # Quad9 secondary
+
+  time:
+    servers:
+      - time.cloudflare.com
+      - 0.pool.ntp.org
+
+  # Longhorn: dedicated mount for the 2TB data NVMe (nvme0n1 auf allen M920x)
+  # DEAKTIVIERT: nvme0n1 hat noch alte Ubuntu/LVM-Partitionen (vfat != xfs mismatch)
+  # Fix: nvme0n1 zuerst wischen, dann wieder aktivieren (siehe docs/longhorn-disk.md)
+  # disks:
+  #   - device: /dev/nvme0n1
+  #     partitions:
+  #       - mountpoint: /var/mnt/longhorn
+  #
+  # kubelet:
+  #   extraMounts:
+  #     - destination: /var/mnt/longhorn
+  #       type: bind
+  #       source: /var/mnt/longhorn
+  #       options:
+  #         - bind
+  #         - rshared
+  #         - rw
+
+  sysctls:
+    fs.inotify.max_user_watches: "1048576"
+    fs.inotify.max_user_instances: "8192"

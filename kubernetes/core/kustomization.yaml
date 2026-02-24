@@ -1,0 +1,11 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - cilium         # kein auto-sync — kritische CNI-Infrastruktur, manuell syncen
+  - longhorn
+  - multus
+  - kubevirt
+  # cilium-bgp: NICHT aktiv — BGP wird manuell nach Router-Konfiguration aktiviert
+  # Aktivierung: diese Zeile hinzufügen + BGP-Werte in cilium-bgp/ befüllen
+  # - cilium-bgp

@@ -1,0 +1,107 @@
+---
+clusterName: homelab
+talosVersion: v1.12.4
+kubernetesVersion: v1.35.0
+endpoint: https://10.0.100.10:6443
+
+# Run: curl -sX POST --data-binary @schematic.yaml https://factory.talos.dev/schematics | jq -r .id
+talosImageURL: factory.talos.dev/installer/36cd6536eaec8ba802be2d38974108359069cedba8857302f69792b26b87c010
+
+patches:
+  - "@./patches/common.yaml"
+  - "@./patches/longhorn-disk.yaml"
+
+controlPlane:
+  patches:
+    - "@./patches/controlplane.yaml"
+
+nodes:
+  - hostname: m920x-01
+    ipAddress: 10.0.200.11
+    controlPlane: true
+    installDiskSelector:
+      size: "<= 500GB"
+    networkInterfaces:
+      - interface: eno1
+        dhcp: false
+        addresses:
+          - 10.0.200.11/24
+      - interface: bond0
+        dhcp: false
+        bond:
+          mode: 802.3ad
+          lacpRate: fast
+          interfaces:
+            - enp1s0
+            - enp1s0d1
+          miimon: 100
+        vlans:
+          - vlanId: 100
+            dhcp: false
+            addresses:
+              - 10.0.100.11/24
+            routes:
+              - network: 0.0.0.0/0
+                gateway: 10.0.100.1
+            vip:
+              ip: 10.0.100.10
+
+  - hostname: m920x-02
+    ipAddress: 10.0.200.12
+    controlPlane: true
+    installDiskSelector:
+      size: "<= 500GB"
+    networkInterfaces:
+      - interface: eno1
+        dhcp: false
+        addresses:
+          - 10.0.200.12/24
+      - interface: bond0
+        dhcp: false
+        bond:
+          mode: 802.3ad
+          lacpRate: fast
+          interfaces:
+            - enp1s0
+            - enp1s0d1
+          miimon: 100
+        vlans:
+          - vlanId: 100
+            dhcp: false
+            addresses:
+              - 10.0.100.12/24
+            routes:
+              - network: 0.0.0.0/0
+                gateway: 10.0.100.1
+            vip:
+              ip: 10.0.100.10
+
+  - hostname: m920x-03
+    ipAddress: 10.0.200.13
+    controlPlane: true
+    installDiskSelector:
+      size: "<= 500GB"
+    networkInterfaces:
+      - interface: eno1
+        dhcp: false
+        addresses:
+          - 10.0.200.13/24
+      - interface: bond0
+        dhcp: false
+        bond:
+          mode: 802.3ad
+          lacpRate: fast
+          interfaces:
+            - enp1s0
+            - enp1s0d1
+          miimon: 100
+        vlans:
+          - vlanId: 100
+            dhcp: false
+            addresses:
+              - 10.0.100.13/24
+            routes:
+              - network: 0.0.0.0/0
+                gateway: 10.0.100.1
+            vip:
+              ip: 10.0.100.10

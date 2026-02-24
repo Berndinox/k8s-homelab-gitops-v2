@@ -1,0 +1,16 @@
+---
+# LoadBalancer IP Pool — VLAN 10 (DMZ: 10.0.5.0/24)
+# Für Services die aus dem Internet / der DMZ erreichbar sein sollen.
+# IP-Range ausfüllen: freie Adressen in 10.0.5.0/24 prüfen
+#
+# Annotation für Services: service.beta.kubernetes.io/cilium-loadbalancer-ip-pool: dmz
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: dmz
+spec:
+  blocks:
+    - cidr: "10.0.5.200/28"     # REPLACE: freier IP-Bereich in VLAN 10 (DMZ)
+  serviceSelector:
+    matchLabels:
+      lb-pool: dmz

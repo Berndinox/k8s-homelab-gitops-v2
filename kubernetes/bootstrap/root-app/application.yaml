@@ -1,0 +1,29 @@
+---
+# Root App-of-Apps — einmalig manuell anwenden nach ArgoCD-Install:
+#   kubectl apply -f kubernetes/bootstrap/root-app/application.yaml
+# Danach managed ArgoCD alles weitere selbst.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Berndinox/k8s-homelab-gitops-v2
+    targetRevision: main
+    path: kubernetes/bootstrap/root-app
+    helm:
+      releaseName: root
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

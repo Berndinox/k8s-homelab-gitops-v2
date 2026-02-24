@@ -1,0 +1,17 @@
+---
+# LoadBalancer IP Pool — VLAN 50 (Server-Netz: 10.0.50.0/24)
+# Für Services die im Server-VLAN erreichbar sein sollen.
+# IP-Range ausfüllen: empfohlen ist ein /28 oder /27 am Ende des Subnetzes
+# z.B. 10.0.50.200 - 10.0.50.254 (freie Adressen prüfen!)
+#
+# Annotation für Services: service.beta.kubernetes.io/cilium-loadbalancer-ip-pool: server
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: server
+spec:
+  blocks:
+    - cidr: "10.0.50.200/28"    # REPLACE: freier IP-Bereich in VLAN 50 (Server)
+  serviceSelector:
+    matchLabels:
+      lb-pool: server

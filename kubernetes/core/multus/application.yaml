@@ -1,0 +1,27 @@
+---
+# Multus CNI — enables multiple network interfaces for pods/VMs
+# sync-wave -1: Must be ready before KubeVirt VMs
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: multus
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Berndinox/k8s-homelab-gitops-v2
+    targetRevision: main
+    path: kubernetes/core/multus/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true

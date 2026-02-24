@@ -1,0 +1,20 @@
+---
+# Longhorn dedicated disk: nvme0n1 (2TB) auf allen M920x Nodes
+#
+# VORAUSSETZUNG: nvme0n1 muss zuerst gewiped sein (alte Ubuntu/LVM-Partitionen)
+#   talosctl blockdevice wipe nvme0n1 --mode fast -n <IP> -e <IP> --talosconfig clusterconfig/talosconfig
+#
+# Danach diesen Patch in talconfig.yaml einbinden:
+#   patches:
+#     - "@./patches/longhorn-disk.yaml"
+#
+# UserVolumeConfig: Talos v1.12 API — automount bei /var/mnt/longhorn
+# diskSelector matcht den größten nicht-System-NVMe-Disk (nvme0n1, 2TB)
+# kubelet.extraMounts wird NICHT benötigt — Talos registriert den Mount automatisch
+apiVersion: v1alpha1
+kind: UserVolumeConfig
+name: longhorn
+provisioning:
+  diskSelector:
+    match: "disk.transport == 'nvme' && !system_disk && disk.size > 1000000000000u"
+  minSize: 0

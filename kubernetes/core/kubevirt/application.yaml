@@ -1,0 +1,54 @@
+---
+# KubeVirt — sync-wave 0 (after CNI + storage)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubevirt
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Berndinox/k8s-homelab-gitops-v2
+    targetRevision: main
+    path: kubernetes/core/kubevirt/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kubevirt
+  syncPolicy:
+    automated:
+      prune: false   # don't auto-prune KubeVirt CRDs/Operator
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
+# CDI (Containerized Data Importer) — VM image management
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cdi
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Berndinox/k8s-homelab-gitops-v2
+    targetRevision: main
+    path: kubernetes/core/kubevirt/manifests-cdi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cdi
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

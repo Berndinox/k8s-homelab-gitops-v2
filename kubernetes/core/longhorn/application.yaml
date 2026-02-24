@@ -1,0 +1,39 @@
+---
+# sync-wave -1: Storage must be ready before workloads
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: longhorn
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  project: default
+  source:
+    repoURL: https://charts.longhorn.io
+    chart: longhorn
+    targetRevision: 1.11.0
+    helm:
+      values: |
+        defaultSettings:
+          defaultDataPath: /var/mnt/longhorn
+          defaultReplicaCount: 1   # Single-Node: auf 3 erhöhen nach Join von Node 01+02
+          storageMinimalAvailablePercentage: 10
+          nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+        persistence:
+          defaultClass: true
+          defaultClassReplicaCount: 1  # Single-Node: auf 3 erhöhen nach Join von Node 01+02
+        longhornUI:
+          replicas: 1
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: longhorn-system
+  syncPolicy:
+    automated:
+      prune: false  # Kein Auto-Prune: PVCs/Volumes nicht versehentlich löschen
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

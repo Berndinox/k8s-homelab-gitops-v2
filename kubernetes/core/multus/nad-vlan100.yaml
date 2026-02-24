@@ -1,0 +1,16 @@
+---
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: vlan-100-cluster
+  namespace: default
+spec:
+  config: |
+    {
+      "cniVersion": "0.3.1",
+      "name": "vlan-100-cluster",
+      "type": "vlan",
+      "master": "bond0",
+      "vlanId": 100,
+      "ipam": { "type": "dhcp" }
+    }
