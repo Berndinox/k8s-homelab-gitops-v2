@@ -3,11 +3,5 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - application.yaml
-  - nad-vlan5.yaml
-  - nad-vlan10.yaml
-  - nad-vlan30.yaml
-  - nad-vlan40.yaml
-  - nad-vlan50.yaml
-  - nad-vlan60.yaml
-  - nad-vlan100.yaml
-  - nad-vlan200.yaml
+  # NADs are NOT here — they need the NetworkAttachmentDefinition CRD from Multus first.
+  # NADs are managed by the Multus ArgoCD app itself (kubernetes/core/multus/manifests/)

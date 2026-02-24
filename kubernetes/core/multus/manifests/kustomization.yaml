@@ -3,3 +3,12 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-cni/v4.2.4/deployments/multus-daemonset.yml
+  # NADs — deployed after Multus DaemonSet (ArgoCD applies CRDs before other resources)
+  - nad-vlan5.yaml
+  - nad-vlan10.yaml
+  - nad-vlan30.yaml
+  - nad-vlan40.yaml
+  - nad-vlan50.yaml
+  - nad-vlan60.yaml
+  - nad-vlan100.yaml
+  - nad-vlan200.yaml
