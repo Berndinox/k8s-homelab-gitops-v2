@@ -1,0 +1,37 @@
+---
+# VyOS Firewall VM — ArgoCD Application
+# sync-wave 2: nach KubeVirt (wave 0) + CDI (wave 1)
+#
+# WICHTIG: VM startet nicht automatisch (running: false in vm.yaml).
+# Manueller Start nach:
+#   1. DataVolume URL in datavolume.yaml gesetzt + ge-synct
+#   2. DataVolume Status = Succeeded (CDI-Import fertig)
+#   3. SSH-Key in cloudinit.yaml eingetragen + ge-synct
+#
+# Dann: kubectl patch vm vyos-fw-01 -n vms --type=merge -p '{"spec":{"running":true}}'
+#
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vyos-firewall
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Berndinox/k8s-homelab-gitops-v2
+    targetRevision: main
+    path: kubernetes/vms/vyos-firewall
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vms
+  syncPolicy:
+    automated:
+      prune: false      # Keine automatische Löschung der VM!
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

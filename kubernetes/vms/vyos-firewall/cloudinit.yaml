@@ -1,0 +1,241 @@
+---
+# Cloud-init Secret für VyOS-01 Firewall VM
+#
+# ⚠️  VOR DEPLOY ANPASSEN:
+#   1. SSH public key eintragen (PLACEHOLDER_SSH_PUBKEY)
+#   2. DataVolume-URL in datavolume.yaml setzen
+#   3. 'running: true' in vm.yaml setzen
+#
+# Interface-Mapping (KubeVirt Reihenfolge, VyOS QEMU/VirtIO):
+#   eth0   masquerade   Pod-Netz (K8s intern, wird von VyOS nicht geroutet)
+#   eth1   VLAN 5       WAN — Public IP via DHCP (direkt L2 am Modem)
+#   eth2   VLAN 10      DMZ     10.0.10.190/24  (temp, VRRP-VIP: 10.0.10.1)
+#   eth3   VLAN 30      WiFi-Guest 10.0.30.190/24
+#   eth4   VLAN 40      Client  10.0.40.190/24
+#   eth5   VLAN 50      Server  10.0.50.190/24
+#   eth6   VLAN 60      WiFi-Secure 10.0.60.190/24
+#   eth7   VLAN 100     Cluster 10.0.100.190/24
+#   eth8   VLAN 200     MGMT    10.0.200.190/24
+#
+# HA-Design (vorbereitet, noch nicht aktiv):
+#   VyOS-01: .190 auf jedem VLAN (diese Datei)
+#   VyOS-02: .191 auf jedem VLAN (eigene cloudinit-02.yaml)
+#   VRRP-VIP: .1  auf jedem VLAN → Gateway für alle Clients
+#   VRRP wird aktiviert wenn alter Router (.1/.2/.3) abgelöst wird.
+#
+# Secrets-Hinweis: Diese Datei enthält SSH-Key → in Produktion mit
+# SOPS + Age verschlüsseln bevor Git-Commit!
+#
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vyos-cloudinit
+  namespace: vms
+stringData:
+  userdata: |
+    #cloud-config
+    vyos_config_commands:
+
+      # =================================================================
+      # SYSTEM
+      # =================================================================
+      - set system host-name 'vyos-fw-01'
+      - set system domain-name 'local.Klaus.onl'
+      - set system time-zone 'Europe/Berlin'
+
+      # NTP — public servers bis AdGuard Home läuft
+      - set service ntp server 0.de.pool.ntp.org
+      - set service ntp server 1.de.pool.ntp.org
+      - set service ntp allow-client address '10.0.0.0/8'
+
+      # DNS Forwarding (Resolver für alle internen VLANs)
+      - set service dns forwarding listen-address '10.0.10.190'
+      - set service dns forwarding listen-address '10.0.30.190'
+      - set service dns forwarding listen-address '10.0.40.190'
+      - set service dns forwarding listen-address '10.0.50.190'
+      - set service dns forwarding listen-address '10.0.60.190'
+      - set service dns forwarding listen-address '10.0.100.190'
+      - set service dns forwarding listen-address '10.0.200.190'
+      - set service dns forwarding allow-from '10.0.0.0/8'
+      # Upstream: öffentliche DNS bis AdGuard Home (10.0.50.4/5) betriebsbereit
+      - set service dns forwarding name-server '9.9.9.9'
+      - set service dns forwarding name-server '149.112.112.112'
+      - set service dns forwarding cache-size '10000'
+
+      # =================================================================
+      # SSH-ZUGANG
+      # =================================================================
+      - set service ssh port '22'
+      - set service ssh listen-address '10.0.200.190'
+      - set service ssh listen-address '10.0.100.190'
+      - set system login user vyos authentication public-keys homelab-admin key 'PLACEHOLDER_SSH_PUBKEY'
+      - set system login user vyos authentication public-keys homelab-admin type 'ssh-ed25519'
+
+      # =================================================================
+      # INTERFACES
+      # =================================================================
+
+      # eth0: Pod-Netz (masquerade, nicht geroutet)
+      - set interfaces ethernet eth0 description 'k8s-pod-masquerade'
+
+      # eth1: WAN — Public IP per DHCP vom Modem
+      - set interfaces ethernet eth1 address 'dhcp'
+      - set interfaces ethernet eth1 description 'WAN-VLAN5'
+
+      # eth2: DMZ
+      - set interfaces ethernet eth2 address '10.0.10.190/24'
+      - set interfaces ethernet eth2 description 'DMZ-VLAN10'
+
+      # eth3: WiFi-Guest
+      - set interfaces ethernet eth3 address '10.0.30.190/24'
+      - set interfaces ethernet eth3 description 'WiFi-Guest-VLAN30'
+
+      # eth4: Client
+      - set interfaces ethernet eth4 address '10.0.40.190/24'
+      - set interfaces ethernet eth4 description 'Client-VLAN40'
+
+      # eth5: Server
+      - set interfaces ethernet eth5 address '10.0.50.190/24'
+      - set interfaces ethernet eth5 description 'Server-VLAN50'
+
+      # eth6: WiFi-Secure
+      - set interfaces ethernet eth6 address '10.0.60.190/24'
+      - set interfaces ethernet eth6 description 'WiFi-Secure-VLAN60'
+
+      # eth7: Cluster
+      - set interfaces ethernet eth7 address '10.0.100.190/24'
+      - set interfaces ethernet eth7 description 'Cluster-VLAN100'
+
+      # eth8: MGMT
+      - set interfaces ethernet eth8 address '10.0.200.190/24'
+      - set interfaces ethernet eth8 description 'MGMT-VLAN200'
+
+      # =================================================================
+      # STATIC ROUTES
+      # =================================================================
+      # Default-Route kommt per DHCP auf eth1 (WAN)
+      # Interne Routen für K8s Pod/Service-Netz über Cluster-Interface
+      - set protocols static route 10.244.0.0/16 next-hop '10.0.100.13'
+      - set protocols static route 10.96.0.0/12 next-hop '10.0.100.13'
+
+      # =================================================================
+      # NAT — Alle internen VLANs → WAN (eth1)
+      # =================================================================
+      - set nat source rule 10 description 'DMZ → WAN'
+      - set nat source rule 10 outbound-interface name 'eth1'
+      - set nat source rule 10 source address '10.0.10.0/24'
+      - set nat source rule 10 translation address 'masquerade'
+
+      - set nat source rule 20 description 'WiFi-Guest → WAN'
+      - set nat source rule 20 outbound-interface name 'eth1'
+      - set nat source rule 20 source address '10.0.30.0/24'
+      - set nat source rule 20 translation address 'masquerade'
+
+      - set nat source rule 30 description 'Client → WAN'
+      - set nat source rule 30 outbound-interface name 'eth1'
+      - set nat source rule 30 source address '10.0.40.0/24'
+      - set nat source rule 30 translation address 'masquerade'
+
+      - set nat source rule 40 description 'Server → WAN'
+      - set nat source rule 40 outbound-interface name 'eth1'
+      - set nat source rule 40 source address '10.0.50.0/24'
+      - set nat source rule 40 translation address 'masquerade'
+
+      - set nat source rule 50 description 'WiFi-Secure → WAN'
+      - set nat source rule 50 outbound-interface name 'eth1'
+      - set nat source rule 50 source address '10.0.60.0/24'
+      - set nat source rule 50 translation address 'masquerade'
+
+      - set nat source rule 60 description 'Cluster → WAN'
+      - set nat source rule 60 outbound-interface name 'eth1'
+      - set nat source rule 60 source address '10.0.100.0/24'
+      - set nat source rule 60 translation address 'masquerade'
+
+      - set nat source rule 70 description 'MGMT → WAN'
+      - set nat source rule 70 outbound-interface name 'eth1'
+      - set nat source rule 70 source address '10.0.200.0/24'
+      - set nat source rule 70 translation address 'masquerade'
+
+      # =================================================================
+      # FIREWALL — Zone-Based Policy
+      # =================================================================
+
+      # --- Zonen definieren ---
+      - set firewall zone WAN interface 'eth1'
+      - set firewall zone DMZ interface 'eth2'
+      - set firewall zone WIFI-GUEST interface 'eth3'
+      - set firewall zone CLIENT interface 'eth4'
+      - set firewall zone SERVER interface 'eth5'
+      - set firewall zone WIFI-SEC interface 'eth6'
+      - set firewall zone CLUSTER interface 'eth7'
+      - set firewall zone MGMT interface 'eth8'
+      - set firewall zone LOCAL local-zone
+
+      # --- Basis-Policy: established/related immer erlaubt ---
+      - set firewall ipv4 name ALLOW-ESTABLISHED rule 1 action 'accept'
+      - set firewall ipv4 name ALLOW-ESTABLISHED rule 1 state established
+      - set firewall ipv4 name ALLOW-ESTABLISHED rule 1 state related
+      - set firewall ipv4 name ALLOW-ESTABLISHED rule 2 action 'drop'
+      - set firewall ipv4 name ALLOW-ESTABLISHED rule 2 state invalid
+
+      # --- WAN → LOCAL: nur established (kein unsolizitierter Inbound) ---
+      - set firewall ipv4 name WAN-TO-LOCAL default-action 'drop'
+      - set firewall ipv4 name WAN-TO-LOCAL rule 10 action 'accept'
+      - set firewall ipv4 name WAN-TO-LOCAL rule 10 state established
+      - set firewall ipv4 name WAN-TO-LOCAL rule 10 state related
+      - set firewall zone LOCAL from WAN firewall name 'WAN-TO-LOCAL'
+
+      # --- MGMT → LOCAL: voll erlaubt (Admin-Zugang) ---
+      - set firewall ipv4 name MGMT-TO-LOCAL default-action 'accept'
+      - set firewall zone LOCAL from MGMT firewall name 'MGMT-TO-LOCAL'
+
+      # --- CLUSTER → LOCAL: erlaubt (K8s API, BGP später) ---
+      - set firewall ipv4 name CLUSTER-TO-LOCAL default-action 'accept'
+      - set firewall zone LOCAL from CLUSTER firewall name 'CLUSTER-TO-LOCAL'
+
+      # --- WAN → alle internen Zonen: nur established ---
+      - set firewall zone DMZ from WAN firewall name 'ALLOW-ESTABLISHED'
+      - set firewall zone SERVER from WAN firewall name 'ALLOW-ESTABLISHED'
+      - set firewall zone CLIENT from WAN firewall name 'ALLOW-ESTABLISHED'
+      - set firewall zone WIFI-GUEST from WAN firewall name 'ALLOW-ESTABLISHED'
+      - set firewall zone WIFI-SEC from WAN firewall name 'ALLOW-ESTABLISHED'
+      - set firewall zone CLUSTER from WAN firewall name 'ALLOW-ESTABLISHED'
+      - set firewall zone MGMT from WAN firewall name 'ALLOW-ESTABLISHED'
+
+      # --- WIFI-GUEST: isoliert — kein Zugang zu internen Zonen ---
+      - set firewall ipv4 name WIFI-GUEST-TO-INTERNAL default-action 'drop'
+      - set firewall ipv4 name WIFI-GUEST-TO-INTERNAL rule 10 action 'accept'
+      - set firewall ipv4 name WIFI-GUEST-TO-INTERNAL rule 10 state established
+      - set firewall ipv4 name WIFI-GUEST-TO-INTERNAL rule 10 state related
+      - set firewall zone SERVER from WIFI-GUEST firewall name 'WIFI-GUEST-TO-INTERNAL'
+      - set firewall zone CLIENT from WIFI-GUEST firewall name 'WIFI-GUEST-TO-INTERNAL'
+      - set firewall zone CLUSTER from WIFI-GUEST firewall name 'WIFI-GUEST-TO-INTERNAL'
+      - set firewall zone MGMT from WIFI-GUEST firewall name 'WIFI-GUEST-TO-INTERNAL'
+      - set firewall zone DMZ from WIFI-GUEST firewall name 'WIFI-GUEST-TO-INTERNAL'
+      - set firewall zone WIFI-SEC from WIFI-GUEST firewall name 'WIFI-GUEST-TO-INTERNAL'
+
+      # =================================================================
+      # HA / VRRP — VORBEREITET, NOCH NICHT AKTIV
+      # Aktivierung: wenn alter Router (.1) abgelöst wird
+      # VyOS-02 bekommt .191, VRRP-VIP wird .1
+      # =================================================================
+      # - set high-availability vrrp group DMZ vrid '10'
+      # - set high-availability vrrp group DMZ interface 'eth2'
+      # - set high-availability vrrp group DMZ address '10.0.10.1/24'
+      # - set high-availability vrrp group DMZ priority '200'
+      # - set high-availability vrrp group DMZ authentication password 'VRRP_SECRET'
+      # - set high-availability vrrp group DMZ authentication type 'plaintext-password'
+      # ... (gleiche Struktur für alle VLANs: WiFi-Guest=30, Client=40,
+      #      Server=50, WiFi-Sec=60, Cluster=100, MGMT=200)
+
+      # =================================================================
+      # BGP — VORBEREITET, NOCH NICHT AKTIV
+      # VyOS AS 65000 ↔ Cilium AS 65100
+      # =================================================================
+      # - set protocols bgp system-as '65000'
+      # - set protocols bgp parameters router-id '10.0.100.1'
+      # - set protocols bgp neighbor 10.0.100.13 remote-as '65100'
+      # - set protocols bgp neighbor 10.0.100.13 description 'm920x-03'
+
+  # Leeres meta-data erforderlich für cloud-init NoCloud
+  meta-data: ""

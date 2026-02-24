@@ -25,12 +25,20 @@ VIP (kube-apiserver): `10.0.100.10`
 | enp1s0 + enp1s0d1  | 10G LACP | bond0 → Trunk alle VLANs     |
 | eno1               | 1G       | MGMT (VLAN 200, Access Port)  |
 
-| VLAN | Subnetz       | Relevanz                         |
-|------|---------------|----------------------------------|
-| 10   | 10.0.5.0/24   | DMZ — Cilium LB-Pool             |
-| 50   | 10.0.50.0/24  | Server — Cilium LB-Pool, AdGuard |
-| 100  | 10.0.100.0/24 | Kubernetes Cluster               |
-| 200  | 10.0.200.0/24 | MGMT (eno1)                      |
+| VLAN | Subnetz        | Zweck                              | Gateway (VRRP) | VyOS-01 temp |
+|------|----------------|------------------------------------|----------------|--------------|
+| 5    | Public (DHCP)  | WAN — direkt L2 am Modem           | —              | DHCP         |
+| 10   | 10.0.10.0/24   | DMZ — Cilium LB-Pool (10.0.10.200/28) | 10.0.10.1   | 10.0.10.190  |
+| 30   | 10.0.30.0/24   | WiFi Guest — isoliert              | 10.0.30.1      | 10.0.30.190  |
+| 40   | 10.0.40.0/24   | Client                             | 10.0.40.1      | 10.0.40.190  |
+| 50   | 10.0.50.0/24   | Server — Cilium LB-Pool (10.0.50.200/28), AdGuard Home (.4/.5) | 10.0.50.1 | 10.0.50.190 |
+| 60   | 10.0.60.0/24   | WiFi Secure (2. SSID, trusted)     | 10.0.60.1      | 10.0.60.190  |
+| 100  | 10.0.100.0/24  | Kubernetes Cluster, BGP-Peer       | 10.0.100.1     | 10.0.100.190 |
+| 200  | 10.0.200.0/24  | MGMT (eno1)                        | 10.0.200.1     | 10.0.200.190 |
+
+Subnetz-Schema: `10.0.{VLAN-ID}.0/24` durchgehend.
+VRRP-VIP (.1) wird aktiviert wenn alter Router abgelöst wird.
+VyOS-02 (HA) bekommt .191 auf jedem VLAN.
 
 ## Software-Stack
 

@@ -1,0 +1,8 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - datavolume.yaml      # CDI: VyOS Image-Import (URL in datavolume.yaml setzen!)
+  - cloudinit.yaml       # Secret mit VyOS-Erstkonfig (SSH-Key eintragen!)
+  - vm.yaml              # KubeVirt VM (running: false bis alles ready)

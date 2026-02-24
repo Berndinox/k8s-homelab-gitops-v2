@@ -1,0 +1,28 @@
+---
+# VMs-Layer: KubeVirt VirtualMachines (VyOS Firewall, zukünftig weitere VMs)
+# sync-wave 1: nach core (KubeVirt+CDI müssen laufen)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vms
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Berndinox/k8s-homelab-gitops-v2
+    targetRevision: main
+    path: kubernetes/vms
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
