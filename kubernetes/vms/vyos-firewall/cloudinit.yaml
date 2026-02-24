@@ -158,6 +158,20 @@ stringData:
 
       # =================================================================
       # FIREWALL — Zone-Based Policy
+      #
+      # Grundregel: KEIN VLAN darf in ein anderes VLAN (Default Deny).
+      # VyOS lässt traffic durch wenn KEINE Policy zwischen zwei Zonen
+      # definiert ist → alle 42 inter-VLAN Paare müssen explizit gesetzt werden.
+      #
+      # Policies (wiederverwendbar, 1× definiert):
+      #   INTER-VLAN-DROP  — Default DROP, nur established/related durch
+      #   WAN-INBOUND-DROP — wie INTER-VLAN-DROP (für WAN-Eingang)
+      #   LOCAL-SERVICES   — Default DROP, erlaubt DNS(53) + NTP(123)
+      #   MGMT-TO-LOCAL    — Default ACCEPT (Admin-Zugang)
+      #   CLUSTER-TO-LOCAL — Default ACCEPT (K8s-API, BGP später)
+      #
+      # Nicht definiert (VyOS Default = ACCEPT):
+      #   Alle internen Zonen → WAN (Internet-Zugang via NAT)
       # =================================================================
 
       # --- Zonen definieren ---
@@ -171,48 +185,131 @@ stringData:
       - set firewall zone MGMT interface 'eth8'
       - set firewall zone LOCAL local-zone
 
-      # --- Basis-Policy: established/related immer erlaubt ---
-      - set firewall ipv4 name ALLOW-ESTABLISHED rule 1 action 'accept'
-      - set firewall ipv4 name ALLOW-ESTABLISHED rule 1 state established
-      - set firewall ipv4 name ALLOW-ESTABLISHED rule 1 state related
-      - set firewall ipv4 name ALLOW-ESTABLISHED rule 2 action 'drop'
-      - set firewall ipv4 name ALLOW-ESTABLISHED rule 2 state invalid
+      # -------------------------------------------------------------------
+      # Policy-Definitionen (werden von Zone-Assignments referenziert)
+      # -------------------------------------------------------------------
 
-      # --- WAN → LOCAL: nur established (kein unsolizitierter Inbound) ---
-      - set firewall ipv4 name WAN-TO-LOCAL default-action 'drop'
-      - set firewall ipv4 name WAN-TO-LOCAL rule 10 action 'accept'
-      - set firewall ipv4 name WAN-TO-LOCAL rule 10 state established
-      - set firewall ipv4 name WAN-TO-LOCAL rule 10 state related
-      - set firewall zone LOCAL from WAN firewall name 'WAN-TO-LOCAL'
+      # INTER-VLAN-DROP: Default DROP — nur established/related durch
+      - set firewall ipv4 name INTER-VLAN-DROP default-action 'drop'
+      - set firewall ipv4 name INTER-VLAN-DROP rule 10 action 'accept'
+      - set firewall ipv4 name INTER-VLAN-DROP rule 10 state established
+      - set firewall ipv4 name INTER-VLAN-DROP rule 10 state related
+      - set firewall ipv4 name INTER-VLAN-DROP rule 20 action 'drop'
+      - set firewall ipv4 name INTER-VLAN-DROP rule 20 state invalid
 
-      # --- MGMT → LOCAL: voll erlaubt (Admin-Zugang) ---
+      # WAN-INBOUND-DROP: WAN darf keine Verbindungen initiieren
+      - set firewall ipv4 name WAN-INBOUND-DROP default-action 'drop'
+      - set firewall ipv4 name WAN-INBOUND-DROP rule 10 action 'accept'
+      - set firewall ipv4 name WAN-INBOUND-DROP rule 10 state established
+      - set firewall ipv4 name WAN-INBOUND-DROP rule 10 state related
+      - set firewall ipv4 name WAN-INBOUND-DROP rule 20 action 'drop'
+      - set firewall ipv4 name WAN-INBOUND-DROP rule 20 state invalid
+
+      # LOCAL-SERVICES: interne Zonen dürfen nur DNS + NTP auf VyOS nutzen
+      - set firewall ipv4 name LOCAL-SERVICES default-action 'drop'
+      - set firewall ipv4 name LOCAL-SERVICES rule 10 action 'accept'
+      - set firewall ipv4 name LOCAL-SERVICES rule 10 state established
+      - set firewall ipv4 name LOCAL-SERVICES rule 10 state related
+      - set firewall ipv4 name LOCAL-SERVICES rule 20 action 'drop'
+      - set firewall ipv4 name LOCAL-SERVICES rule 20 state invalid
+      - set firewall ipv4 name LOCAL-SERVICES rule 30 action 'accept'
+      - set firewall ipv4 name LOCAL-SERVICES rule 30 description 'DNS'
+      - set firewall ipv4 name LOCAL-SERVICES rule 30 destination port '53'
+      - set firewall ipv4 name LOCAL-SERVICES rule 30 protocol 'tcp_udp'
+      - set firewall ipv4 name LOCAL-SERVICES rule 40 action 'accept'
+      - set firewall ipv4 name LOCAL-SERVICES rule 40 description 'NTP'
+      - set firewall ipv4 name LOCAL-SERVICES rule 40 destination port '123'
+      - set firewall ipv4 name LOCAL-SERVICES rule 40 protocol 'udp'
+
+      # MGMT-TO-LOCAL: Admin hat vollen Zugang zu VyOS
       - set firewall ipv4 name MGMT-TO-LOCAL default-action 'accept'
-      - set firewall zone LOCAL from MGMT firewall name 'MGMT-TO-LOCAL'
 
-      # --- CLUSTER → LOCAL: erlaubt (K8s API, BGP später) ---
+      # CLUSTER-TO-LOCAL: K8s-Nodes haben vollen Zugang (DNS, BGP, Management)
       - set firewall ipv4 name CLUSTER-TO-LOCAL default-action 'accept'
+
+      # -------------------------------------------------------------------
+      # WAN → interne Zonen: nur established/related (kein Inbound)
+      # -------------------------------------------------------------------
+      - set firewall zone LOCAL from WAN firewall name 'WAN-INBOUND-DROP'
+      - set firewall zone DMZ from WAN firewall name 'WAN-INBOUND-DROP'
+      - set firewall zone WIFI-GUEST from WAN firewall name 'WAN-INBOUND-DROP'
+      - set firewall zone CLIENT from WAN firewall name 'WAN-INBOUND-DROP'
+      - set firewall zone SERVER from WAN firewall name 'WAN-INBOUND-DROP'
+      - set firewall zone WIFI-SEC from WAN firewall name 'WAN-INBOUND-DROP'
+      - set firewall zone CLUSTER from WAN firewall name 'WAN-INBOUND-DROP'
+      - set firewall zone MGMT from WAN firewall name 'WAN-INBOUND-DROP'
+
+      # -------------------------------------------------------------------
+      # → LOCAL: jede Zone darf nur DNS+NTP (außer MGMT + CLUSTER = voll)
+      # -------------------------------------------------------------------
+      - set firewall zone LOCAL from DMZ firewall name 'LOCAL-SERVICES'
+      - set firewall zone LOCAL from WIFI-GUEST firewall name 'LOCAL-SERVICES'
+      - set firewall zone LOCAL from CLIENT firewall name 'LOCAL-SERVICES'
+      - set firewall zone LOCAL from SERVER firewall name 'LOCAL-SERVICES'
+      - set firewall zone LOCAL from WIFI-SEC firewall name 'LOCAL-SERVICES'
+      - set firewall zone LOCAL from MGMT firewall name 'MGMT-TO-LOCAL'
       - set firewall zone LOCAL from CLUSTER firewall name 'CLUSTER-TO-LOCAL'
 
-      # --- WAN → alle internen Zonen: nur established ---
-      - set firewall zone DMZ from WAN firewall name 'ALLOW-ESTABLISHED'
-      - set firewall zone SERVER from WAN firewall name 'ALLOW-ESTABLISHED'
-      - set firewall zone CLIENT from WAN firewall name 'ALLOW-ESTABLISHED'
-      - set firewall zone WIFI-GUEST from WAN firewall name 'ALLOW-ESTABLISHED'
-      - set firewall zone WIFI-SEC from WAN firewall name 'ALLOW-ESTABLISHED'
-      - set firewall zone CLUSTER from WAN firewall name 'ALLOW-ESTABLISHED'
-      - set firewall zone MGMT from WAN firewall name 'ALLOW-ESTABLISHED'
+      # -------------------------------------------------------------------
+      # Inter-VLAN: ALLE Paare explizit DROP (42 Richtungen)
+      # VyOS Default = ACCEPT wenn keine Policy → muss alles gesetzt werden!
+      # -------------------------------------------------------------------
 
-      # --- WIFI-GUEST: isoliert — kein Zugang zu internen Zonen ---
-      - set firewall ipv4 name WIFI-GUEST-TO-INTERNAL default-action 'drop'
-      - set firewall ipv4 name WIFI-GUEST-TO-INTERNAL rule 10 action 'accept'
-      - set firewall ipv4 name WIFI-GUEST-TO-INTERNAL rule 10 state established
-      - set firewall ipv4 name WIFI-GUEST-TO-INTERNAL rule 10 state related
-      - set firewall zone SERVER from WIFI-GUEST firewall name 'WIFI-GUEST-TO-INTERNAL'
-      - set firewall zone CLIENT from WIFI-GUEST firewall name 'WIFI-GUEST-TO-INTERNAL'
-      - set firewall zone CLUSTER from WIFI-GUEST firewall name 'WIFI-GUEST-TO-INTERNAL'
-      - set firewall zone MGMT from WIFI-GUEST firewall name 'WIFI-GUEST-TO-INTERNAL'
-      - set firewall zone DMZ from WIFI-GUEST firewall name 'WIFI-GUEST-TO-INTERNAL'
-      - set firewall zone WIFI-SEC from WIFI-GUEST firewall name 'WIFI-GUEST-TO-INTERNAL'
+      # DMZ (eth2) → alle anderen internen Zonen
+      - set firewall zone WIFI-GUEST from DMZ firewall name 'INTER-VLAN-DROP'
+      - set firewall zone CLIENT from DMZ firewall name 'INTER-VLAN-DROP'
+      - set firewall zone SERVER from DMZ firewall name 'INTER-VLAN-DROP'
+      - set firewall zone WIFI-SEC from DMZ firewall name 'INTER-VLAN-DROP'
+      - set firewall zone CLUSTER from DMZ firewall name 'INTER-VLAN-DROP'
+      - set firewall zone MGMT from DMZ firewall name 'INTER-VLAN-DROP'
+
+      # WIFI-GUEST (eth3) → alle anderen internen Zonen
+      - set firewall zone DMZ from WIFI-GUEST firewall name 'INTER-VLAN-DROP'
+      - set firewall zone CLIENT from WIFI-GUEST firewall name 'INTER-VLAN-DROP'
+      - set firewall zone SERVER from WIFI-GUEST firewall name 'INTER-VLAN-DROP'
+      - set firewall zone WIFI-SEC from WIFI-GUEST firewall name 'INTER-VLAN-DROP'
+      - set firewall zone CLUSTER from WIFI-GUEST firewall name 'INTER-VLAN-DROP'
+      - set firewall zone MGMT from WIFI-GUEST firewall name 'INTER-VLAN-DROP'
+
+      # CLIENT (eth4) → alle anderen internen Zonen
+      - set firewall zone DMZ from CLIENT firewall name 'INTER-VLAN-DROP'
+      - set firewall zone WIFI-GUEST from CLIENT firewall name 'INTER-VLAN-DROP'
+      - set firewall zone SERVER from CLIENT firewall name 'INTER-VLAN-DROP'
+      - set firewall zone WIFI-SEC from CLIENT firewall name 'INTER-VLAN-DROP'
+      - set firewall zone CLUSTER from CLIENT firewall name 'INTER-VLAN-DROP'
+      - set firewall zone MGMT from CLIENT firewall name 'INTER-VLAN-DROP'
+
+      # SERVER (eth5) → alle anderen internen Zonen
+      - set firewall zone DMZ from SERVER firewall name 'INTER-VLAN-DROP'
+      - set firewall zone WIFI-GUEST from SERVER firewall name 'INTER-VLAN-DROP'
+      - set firewall zone CLIENT from SERVER firewall name 'INTER-VLAN-DROP'
+      - set firewall zone WIFI-SEC from SERVER firewall name 'INTER-VLAN-DROP'
+      - set firewall zone CLUSTER from SERVER firewall name 'INTER-VLAN-DROP'
+      - set firewall zone MGMT from SERVER firewall name 'INTER-VLAN-DROP'
+
+      # WIFI-SEC (eth6) → alle anderen internen Zonen
+      - set firewall zone DMZ from WIFI-SEC firewall name 'INTER-VLAN-DROP'
+      - set firewall zone WIFI-GUEST from WIFI-SEC firewall name 'INTER-VLAN-DROP'
+      - set firewall zone CLIENT from WIFI-SEC firewall name 'INTER-VLAN-DROP'
+      - set firewall zone SERVER from WIFI-SEC firewall name 'INTER-VLAN-DROP'
+      - set firewall zone CLUSTER from WIFI-SEC firewall name 'INTER-VLAN-DROP'
+      - set firewall zone MGMT from WIFI-SEC firewall name 'INTER-VLAN-DROP'
+
+      # CLUSTER (eth7) → alle anderen internen Zonen
+      - set firewall zone DMZ from CLUSTER firewall name 'INTER-VLAN-DROP'
+      - set firewall zone WIFI-GUEST from CLUSTER firewall name 'INTER-VLAN-DROP'
+      - set firewall zone CLIENT from CLUSTER firewall name 'INTER-VLAN-DROP'
+      - set firewall zone SERVER from CLUSTER firewall name 'INTER-VLAN-DROP'
+      - set firewall zone WIFI-SEC from CLUSTER firewall name 'INTER-VLAN-DROP'
+      - set firewall zone MGMT from CLUSTER firewall name 'INTER-VLAN-DROP'
+
+      # MGMT (eth8) → alle anderen internen Zonen
+      - set firewall zone DMZ from MGMT firewall name 'INTER-VLAN-DROP'
+      - set firewall zone WIFI-GUEST from MGMT firewall name 'INTER-VLAN-DROP'
+      - set firewall zone CLIENT from MGMT firewall name 'INTER-VLAN-DROP'
+      - set firewall zone SERVER from MGMT firewall name 'INTER-VLAN-DROP'
+      - set firewall zone WIFI-SEC from MGMT firewall name 'INTER-VLAN-DROP'
+      - set firewall zone CLUSTER from MGMT firewall name 'INTER-VLAN-DROP'
 
       # =================================================================
       # HA / VRRP — VORBEREITET, NOCH NICHT AKTIV
