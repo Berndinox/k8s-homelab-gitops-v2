@@ -37,3 +37,4 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+    # PSA-Labels werden von longhorn-prereqs App verwaltet (prereqs-application.yaml)

@@ -1,0 +1,11 @@
+---
+# Longhorn Namespace — vorab mit privileged PSA erstellt.
+# Longhorn braucht privilegierte Pods (hostPath volumes, privileged containers).
+# Muss VOR dem Longhorn Helm-Chart existieren (sync-wave -2 vs -1).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: longhorn-system
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/enforce-version: latest

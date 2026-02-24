@@ -1,0 +1,29 @@
+---
+# Longhorn Pre-Requisites — sync-wave -2 (vor Longhorn Helm-Chart bei -1)
+# Erstellt Namespace (mit privileged PSA) + ServiceAccount vorab,
+# damit der longhorn-pre-upgrade Hook starten kann.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: longhorn-prereqs
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Berndinox/k8s-homelab-gitops-v2
+    targetRevision: main
+    path: kubernetes/core/longhorn/prereqs
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: longhorn-system
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
