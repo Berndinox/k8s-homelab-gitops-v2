@@ -12,6 +12,9 @@ kubeconfig-mgmt
 # SOPS age key — local only, back up separately!
 age.key
 
+# Claude Code local settings
+.claude/
+
 # OS artifacts
 .DS_Store
 Thumbs.db
