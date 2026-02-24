@@ -118,6 +118,24 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
+  # Hubble TLS certs are regenerated on every `helm template` run (random).
+  # ignoreDifferences prevents false OutOfSync for these ephemeral Helm-generated Secrets.
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: cilium-ca
+      namespace: kube-system
+      jsonPointers: [/data]
+    - group: ""
+      kind: Secret
+      name: hubble-server-certs
+      namespace: kube-system
+      jsonPointers: [/data]
+    - group: ""
+      kind: Secret
+      name: hubble-relay-client-certs
+      namespace: kube-system
+      jsonPointers: [/data]
   syncPolicy:
     # NO automated sync — Cilium is the CNI backbone.
     # If ArgoCD auto-syncs with broken values, all pods die and ArgoCD can't self-heal.
