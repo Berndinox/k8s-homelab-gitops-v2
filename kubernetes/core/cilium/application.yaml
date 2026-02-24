@@ -57,8 +57,17 @@ spec:
           enabled: true
           bbr: true
 
+        # hostFirewall: false — dokumentierte Inkompatibilität mit endpointRoutes.
+        # Wenn endpointRoutes=true UND hostFirewall=true: BPF-Attachment-Points
+        # (cilium_host/cilium_net) existieren nicht mehr in der erwarteten Form →
+        # Host-Endpoint Tail-Call-Slot bleibt leer → alle Pod→Host Pakete droppen
+        # mit "Host datapath not ready" (cilium Issue #13121).
+        # Zusätzlich: hostFirewall funktioniert generell nicht mit VLAN-Interfaces
+        # (bond0.100) — Issue #40247.
+        # Pod-to-Pod NetworkPolicy bleibt vollständig aktiv.
+        # Node-Schutz übernimmt Talos eigene Firewall.
         hostFirewall:
-          enabled: true
+          enabled: false
 
         hostPort:
           enabled: true
