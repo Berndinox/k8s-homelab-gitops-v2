@@ -1,0 +1,11 @@
+---
+# SOPS-Konfiguration für k8s-homelab-gitops-v2
+# Alle Secrets in kubernetes/ werden mit Age verschlüsselt.
+# Public key: age1z6080dvy3sphcl4jq86ue78xns0ap2age97237yrzh87cmzsmfcqh43xee
+#
+# Verschlüsseln:  sops --encrypt --in-place <datei.yaml>
+# Entschlüsseln:  sops --decrypt <datei.yaml>
+# Bearbeiten:     sops <datei.yaml>
+creation_rules:
+  - path_regex: kubernetes/.*\.yaml$
+    age: age1z6080dvy3sphcl4jq86ue78xns0ap2age97237yrzh87cmzsmfcqh43xee

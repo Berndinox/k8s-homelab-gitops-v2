@@ -1,8 +1,11 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+
+# Secrets werden via ksops entschlüsselt (ghcr-pull-secret.yaml + cloudinit.yaml)
+generators:
+  - ksops-generator.yaml
+
 resources:
   - namespace.yaml
-  - datavolume.yaml      # CDI: VyOS Image-Import (URL in datavolume.yaml setzen!)
-  - cloudinit.yaml       # Secret mit VyOS-Erstkonfig (SSH-Key eintragen!)
-  - vm.yaml              # KubeVirt VM (running: false bis alles ready)
+  - vm.yaml                 # KubeVirt VM (running: false bis alles ready)

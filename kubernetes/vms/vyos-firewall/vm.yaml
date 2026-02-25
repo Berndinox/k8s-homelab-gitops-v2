@@ -1,6 +1,10 @@
 ---
 # VyOS-01 Firewall VM
 #
+# Image: ghcr.io/berndinox/vyos-image-builder:2026.02 (ContainerDisk, ephemer)
+#   → cloud-init läuft bei jedem Boot → 100% GitOps, kein Drift möglich
+#   → Image-Update: Tag in containerDisk ändern + commit
+#
 # Interface-Mapping:
 #   eth0  masquerade   Pod-Netz (K8s intern)
 #   eth1  VLAN 5       WAN      (Public IP per DHCP)
@@ -17,7 +21,7 @@
 #   Für VyOS-02: diese Datei kopieren → vm-02.yaml,
 #   name → 'vyos-fw-02', cloud-init Secret → 'vyos-cloudinit-02'
 #
-# VM starten (nach DataVolume-Import + SSH-Key gesetzt):
+# VM starten (nach SSH-Key in cloudinit.yaml + ghcr-pull-secret gesetzt):
 #   kubectl patch vm vyos-fw-01 -n vms --type=merge -p '{"spec":{"running":true}}'
 # Konsole:
 #   virtctl console vyos-fw-01 -n vms
@@ -35,8 +39,9 @@ metadata:
     role: firewall
 spec:
   # running: false — erst starten wenn:
-  #   1. DataVolume 'vyos-boot-01' Ready (CDI-Import abgeschlossen)
-  #   2. SSH-Key in cloudinit.yaml eingetragen
+  #   1. SSH-Key in cloudinit.yaml eingetragen + committed
+  #   2. ghcr-pull-secret im vms-Namespace vorhanden (SOPS decrypt)
+  #   3. ContainerDisk Image in GHCR gebaut (GH Actions workflow_dispatch)
   running: false
 
   template:
@@ -115,11 +120,16 @@ spec:
           autoattachSerialConsole: true
           autoattachGraphicsDevice: false
 
+      # --- Image Pull Secret für privates GHCR ---
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+
       # --- Volumes ---
       volumes:
         - name: boot
-          dataVolume:
-            name: vyos-boot-01
+          containerDisk:
+            image: ghcr.io/berndinox/vyos-image-builder:2026.02
+            imagePullPolicy: IfNotPresent
         - name: cloudinit
           cloudInitNoCloud:
             userDataSecretRef:
