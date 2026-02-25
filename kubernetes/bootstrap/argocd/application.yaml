@@ -23,8 +23,9 @@ spec:
           params:
             server.insecure: true
           cm:
-            # ksops exec-plugin für SOPS-Entschlüsselung bei Kustomize-Builds
-            kustomize.buildOptions: "--enable-exec"
+            # Kustomize v5: --enable-alpha-plugins aktiviert Plugin-System,
+            # --enable-exec erlaubt exec-Plugins (ksops für SOPS-Entschlüsselung)
+            kustomize.buildOptions: "--enable-alpha-plugins --enable-exec"
         server:
           service:
             type: LoadBalancer
