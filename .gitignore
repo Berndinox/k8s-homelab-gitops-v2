@@ -15,6 +15,9 @@ age.key
 # Claude Code local settings
 .claude/
 
+# Backup-Archive (backup-secrets.sh output)
+talos-backup-*.tar.gz.age
+
 # OS artifacts
 .DS_Store
 Thumbs.db
