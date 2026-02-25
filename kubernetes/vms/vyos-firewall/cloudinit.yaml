@@ -1,338 +1,51 @@
----
-# Cloud-init Secret für VyOS-01 Firewall VM
+#ENC[AES256_GCM,data:5V0BXO6PILz4vVjQU/dBuX8iue6V2BaBj1nhUQbX3fl4d69o9DpF5klFAQ==,iv:Jf2BKLZwXqRGD8mcGr1JiefhAav12VOVv4Kf/KN4Ujs=,tag:tC0lzUMTL5/FWNgzuPRYtw==,type:comment]
 #
-# ⚠️  VOR DEPLOY ANPASSEN:
-#   1. SSH public key eintragen (PLACEHOLDER_SSH_PUBKEY)
-#   2. DataVolume-URL in datavolume.yaml setzen
-#   3. 'running: true' in vm.yaml setzen
+#ENC[AES256_GCM,data:hWSS1NEoKPGasqG9vv2A3h/uMF/WVLOeLPf815E=,iv:HM2jzaIQxpSlAtbNyI7OgLPQsxueod7VXpY4XAU7Pc8=,tag:FWAEVM4E68JuoCm0gNlBiw==,type:comment]
+#ENC[AES256_GCM,data:wIWnP6H+99trtuKxodScu8qiku+o0VxjArx3LUgp6BL3APioC8JBb14w7rAug1EYqVSfH61ttA==,iv:9NXU5eXycBZO8W0qa53QOcTd9DcbOZ9/xwEkJE0cf8s=,tag:XlOO3Tg5oYdWXCDW9PVPRg==,type:comment]
+#ENC[AES256_GCM,data:hZmrHuTAiWiWFgVmUKxXFQz0X7rOiME+BhirT9qsWoUGFUEWKMlJMbOiFT5tjw==,iv:dLuAzVMY6IqjRlH4mlzwuSCaqYQw6Pf2vBT7cxSca28=,tag:4OXGlK14JDPxi8i4wsaCvA==,type:comment]
+#ENC[AES256_GCM,data:0ps1V/IwnYBE2ZI3XoEc3x/YzkKVkgFwqxZ/fGdO//2vNV1t5os5,iv:LLyEa7jLXLeQI6xVbcAQw2nArgs0s8mCYrfjHeCMQrk=,tag:q8BKp7DwMtZsAtq740xlhw==,type:comment]
 #
-# Interface-Mapping (KubeVirt Reihenfolge, VyOS QEMU/VirtIO):
-#   eth0   masquerade   Pod-Netz (K8s intern, wird von VyOS nicht geroutet)
-#   eth1   VLAN 5       WAN — Public IP via DHCP (direkt L2 am Modem)
-#   eth2   VLAN 10      DMZ     10.0.10.190/24  (temp, VRRP-VIP: 10.0.10.1)
-#   eth3   VLAN 30      WiFi-Guest 10.0.30.190/24
-#   eth4   VLAN 40      Client  10.0.40.190/24
-#   eth5   VLAN 50      Server  10.0.50.190/24
-#   eth6   VLAN 60      WiFi-Secure 10.0.60.190/24
-#   eth7   VLAN 100     Cluster 10.0.100.190/24
-#   eth8   VLAN 200     MGMT    10.0.200.190/24
+#ENC[AES256_GCM,data:HtL1T+5HkU/igRELdqYZahsDppqBBYAYatqMydGjXHZhZ/W/qKfz8wltHOCUIwEYtyxf6Dqm76RP0HcG,iv:tfucy46dEnhHm8ipllWMWMaa7UWHFlRSsRPYneNkAQ8=,tag:nuH4u8v8Pb0lAitF5UtAug==,type:comment]
+#ENC[AES256_GCM,data:hWXuZKQZ0/qDCc1ED9VoYtx2qKXEx/vzhmKsUVvuM0oPjiFfcA+2iGS3CqOH8KqCg16xIplYEI+cIg0td4NfPT/1u6y6qi9rd6o=,iv:K5gYBaHp6ttGyQ7TQEijoxt3RF2DuxYR4tY0Fd2cuYU=,tag:x9NhAoqfhZhtBYuEMrzcpw==,type:comment]
+#ENC[AES256_GCM,data:LL1f4LhpEBTvUlQrvg1TOSaYBHUCAU+6shddrvk4Hx0l67Z0aoLq779QsDHR/wuIeMsDqJ6m+fbQt0kaZXMAobX+wSMkfg==,iv:Xjpf1uOCPinVVU4V/fDG2/iIhieHOV42FEUMRFSra+M=,tag:tNwo8cciD6uxzp+VPF95zQ==,type:comment]
+#ENC[AES256_GCM,data:7Ar8bAU5X7yzoEIHik6UmR6Nee51PJZxeRteol28GSzvakqhmQFkH7/czuVpp6PgaUmmNKafbtCE63h6OuRgbxMmUZ0NeYzKbBA=,iv:5xSjtzR7EUk236e7lKhhKlfXP7chSF2LeSQ8YwWsWd8=,tag:uH/da1SAsEp14g/l3oeb6w==,type:comment]
+#ENC[AES256_GCM,data:+thL9fRnmatvOPoJqqrGREhMh2wseF7dV/8+WZ7Bd5PN225FA0CMmca/a/W0mIKu,iv:GDoEPr0KhUnx6bRHQ38CWICi3N9PxntCrAJlL/YaTlA=,tag:0codAEdqyZtbfWwTiY/vpw==,type:comment]
+#ENC[AES256_GCM,data:s4D6fcw0eLMatkTLrHuROtYVXVHveMqbQ+omHRmYG3MU3VJ3wOq6bFt8CZCC,iv:eu6grOoBmcClsVYIEmdEq5eszjGjopM06hdvMWotQx4=,tag:0BfhxEC+jTYBXLnXsvTx+w==,type:comment]
+#ENC[AES256_GCM,data:4qxcwiPJRZeS/7ccFX5S1n7icpS249lXDIsw11NHN5zKvvVt98TEN/UZA21u,iv:0JSGDYLgCap0HSsK2bViYhKI36cns3ww8ftP+m9j22A=,tag:iJxaTqfvi9brqJSVaieu6w==,type:comment]
+#ENC[AES256_GCM,data:zYqcM/qw9nRypgMIkgd/a+dyzKG/68R43U0jGJyI3ILKqzR6d9zV2IVJx7R39yV1yw==,iv:t3p5jo9MIlM9D7b63OObNd1OSR269mCGndM1UE1V0vc=,tag:odHbp060eDNr//9hHj6AxA==,type:comment]
+#ENC[AES256_GCM,data:i2zSMnd+1yeWW0yboNvkDDrfZrDUBQCRLJAD1aSUkHsXybTuFUkj7OFSQcRhGg==,iv:sArAjmt4dYn4oi1obyDVyxyavNotBIrh7so7f96LzjE=,tag:K0uwfTup6iOX3NKzCLojhg==,type:comment]
+#ENC[AES256_GCM,data:Mo9zz0W5aWcXWAd2PwYamaihpVwd3wBUef2VtBcqtBW5fE5Ypdx5MG+MKgekqg==,iv:gKNSJONhIZkGbQ/PQptm2NnJCtlEykghjH81eo7HxO4=,tag:ZCs4ostOsR3Kry7sHu6Bdg==,type:comment]
 #
-# HA-Design (vorbereitet, noch nicht aktiv):
-#   VyOS-01: .190 auf jedem VLAN (diese Datei)
-#   VyOS-02: .191 auf jedem VLAN (eigene cloudinit-02.yaml)
-#   VRRP-VIP: .1  auf jedem VLAN → Gateway für alle Clients
-#   VRRP wird aktiviert wenn alter Router (.1/.2/.3) abgelöst wird.
+#ENC[AES256_GCM,data:1zvL6ZUOVSIjVMZ3vG08uJazlOCGAm5xv4guorD7EndzbyxJ1Y4PacSsVQ==,iv:gNQPuFMMAczaWN4YhdFhWgma4Frk1n11Tolh2fej6EM=,tag:NdizP4uT6hgkZ4jKNofi+g==,type:comment]
+#ENC[AES256_GCM,data:F9zVWUYdXqAxMWG3lqjenP12GaxWafIXTddpiPUjG944qWb9KKg2LDt2Bs4R,iv:tWyBriAgp6cSGP91b0N9c/1KLAk2LdmLoM8FqX3QdcY=,tag:wyp1/Y2ZaQHTUgtSIcnWEg==,type:comment]
+#ENC[AES256_GCM,data:nPBTf/FrmW6BZKQ+g+maiKGEGDPER8vjhmRCBcsQg5RSD1oYymckig1fGCe/SwyqUM/233W1WdrODA==,iv:j0K4qsX2s+rygm0fEMft8HoZDIwwJ3KH+sG4+dCGlh8=,tag:FKUL+EUpRoONccd2ZDeKOA==,type:comment]
+#ENC[AES256_GCM,data:c3Gn+Zd5UKpBG8mQCF1P4cD67gg+cgW1i3ZsE+4+U9bqAqJdKUFHY5JfI7/vYmrpXs6bKLVAKs7w6OEU1w==,iv:WYfgJcLJsVj2+I1mpdFmSzqLQeMy81WDlf2p+NcKXLU=,tag:Y5z+p1h1xRGRXNG02OLjvQ==,type:comment]
+#ENC[AES256_GCM,data:Qcg/Q+CwPAqzPSZMjUL0IGcrOQpAzOa+V1GW1Xn6MVxcaJynCCcSQifXPtLY/2raTPRDZo20bUxSqqu8C4MWgtw9xQ==,iv:nmMISTJjX584ynQf/Syl5hkFxyUeKcvzIjvwPZLJnT4=,tag:R47lTyP3rTrKmDtQm4XASA==,type:comment]
 #
-# Secrets-Hinweis: Diese Datei enthält SSH-Key → in Produktion mit
-# SOPS + Age verschlüsseln bevor Git-Commit!
+#ENC[AES256_GCM,data:4onGoIKrvEWLhJkHU4M4AvS1YIu3k/ptmHs1AI7YZuZZGpd1EMZQrXWGi+18+5PrJrxv24dA4ygBFIpmq6+Ukv/QFrs=,iv:GQyX9xWOxfSf3vCxhwfOfm/BoaAtD60CFrcWq+JHkBk=,tag:hmo/4rKxZNEYtqCXKsEGpA==,type:comment]
+#ENC[AES256_GCM,data:xIVjPui6gjyj0tw29hriBwxjzgPseZGGVQvy1df9LH1P80xP3ykKajU+kqU=,iv:5ibtYtv5xIecv3570a3mvDHaf48tDnWuqFNKj1Sg5Ec=,tag:l45Ben5mxn5wWS105jNj8A==,type:comment]
 #
-apiVersion: v1
-kind: Secret
+apiVersion: ENC[AES256_GCM,data:Mig=,iv:68fS+vTiqaBc+kTUnth5O0T8ABwSPSXFjbaEuymnE3E=,tag:SEsaF87PQt13gvS6jI575g==,type:str]
+kind: ENC[AES256_GCM,data:LtlWDebw,iv:2ZhzM3GYdChcJcJcy2lF+RXQkLWL7FuqJot0l0xaU+4=,tag:A1R0aSCDObw02BLvhbM7oA==,type:str]
 metadata:
-  name: vyos-cloudinit
-  namespace: vms
+    name: ENC[AES256_GCM,data:O5BZBvBZjlTo486VyRY=,iv:cf3SHMzdLbJ7WqrXatO4x4Y8w3Ihho0c7IsQbzmWkHo=,tag:HJ95bvVvWFfa5zHeq2VMzA==,type:str]
+    namespace: ENC[AES256_GCM,data:EQg2,iv:swwDrubhq0lR1j8iHj58eDVpdWBCvAmXAEsse6fYH40=,tag:FPFbpA00zfVl0N/EZOM/bg==,type:str]
 stringData:
-  userdata: |
-    #cloud-config
-    vyos_config_commands:
-
-      # =================================================================
-      # SYSTEM
-      # =================================================================
-      - set system host-name 'vyos-fw-01'
-      - set system domain-name 'local.Klaus.onl'
-      - set system time-zone 'Europe/Berlin'
-
-      # NTP — public servers bis AdGuard Home läuft
-      - set service ntp server 0.de.pool.ntp.org
-      - set service ntp server 1.de.pool.ntp.org
-      - set service ntp allow-client address '10.0.0.0/8'
-
-      # DNS Forwarding (Resolver für alle internen VLANs)
-      - set service dns forwarding listen-address '10.0.10.190'
-      - set service dns forwarding listen-address '10.0.30.190'
-      - set service dns forwarding listen-address '10.0.40.190'
-      - set service dns forwarding listen-address '10.0.50.190'
-      - set service dns forwarding listen-address '10.0.60.190'
-      - set service dns forwarding listen-address '10.0.100.190'
-      - set service dns forwarding listen-address '10.0.200.190'
-      - set service dns forwarding allow-from '10.0.0.0/8'
-      # Upstream: öffentliche DNS bis AdGuard Home (10.0.50.4/5) betriebsbereit
-      - set service dns forwarding name-server '9.9.9.9'
-      - set service dns forwarding name-server '149.112.112.112'
-      - set service dns forwarding cache-size '10000'
-
-      # =================================================================
-      # SSH-ZUGANG
-      # =================================================================
-      - set service ssh port '22'
-      - set service ssh listen-address '10.0.200.190'
-      - set service ssh listen-address '10.0.100.190'
-      - set system login user vyos authentication public-keys homelab-admin key 'PLACEHOLDER_SSH_PUBKEY'
-      - set system login user vyos authentication public-keys homelab-admin type 'ssh-ed25519'
-
-      # =================================================================
-      # INTERFACES
-      # =================================================================
-
-      # eth0: Pod-Netz (masquerade, nicht geroutet)
-      - set interfaces ethernet eth0 description 'k8s-pod-masquerade'
-
-      # eth1: WAN — Public IP per DHCP vom Modem
-      - set interfaces ethernet eth1 address 'dhcp'
-      - set interfaces ethernet eth1 description 'WAN-VLAN5'
-
-      # eth2: DMZ
-      - set interfaces ethernet eth2 address '10.0.10.190/24'
-      - set interfaces ethernet eth2 description 'DMZ-VLAN10'
-
-      # eth3: WiFi-Guest
-      - set interfaces ethernet eth3 address '10.0.30.190/24'
-      - set interfaces ethernet eth3 description 'WiFi-Guest-VLAN30'
-
-      # eth4: Client
-      - set interfaces ethernet eth4 address '10.0.40.190/24'
-      - set interfaces ethernet eth4 description 'Client-VLAN40'
-
-      # eth5: Server
-      - set interfaces ethernet eth5 address '10.0.50.190/24'
-      - set interfaces ethernet eth5 description 'Server-VLAN50'
-
-      # eth6: WiFi-Secure
-      - set interfaces ethernet eth6 address '10.0.60.190/24'
-      - set interfaces ethernet eth6 description 'WiFi-Secure-VLAN60'
-
-      # eth7: Cluster
-      - set interfaces ethernet eth7 address '10.0.100.190/24'
-      - set interfaces ethernet eth7 description 'Cluster-VLAN100'
-
-      # eth8: MGMT
-      - set interfaces ethernet eth8 address '10.0.200.190/24'
-      - set interfaces ethernet eth8 description 'MGMT-VLAN200'
-
-      # =================================================================
-      # STATIC ROUTES
-      # =================================================================
-      # Default-Route kommt per DHCP auf eth1 (WAN)
-      # Interne Routen für K8s Pod/Service-Netz über Cluster-Interface
-      - set protocols static route 10.244.0.0/16 next-hop '10.0.100.13'
-      - set protocols static route 10.96.0.0/12 next-hop '10.0.100.13'
-
-      # =================================================================
-      # NAT — Alle internen VLANs → WAN (eth1)
-      # =================================================================
-      - set nat source rule 10 description 'DMZ → WAN'
-      - set nat source rule 10 outbound-interface name 'eth1'
-      - set nat source rule 10 source address '10.0.10.0/24'
-      - set nat source rule 10 translation address 'masquerade'
-
-      - set nat source rule 20 description 'WiFi-Guest → WAN'
-      - set nat source rule 20 outbound-interface name 'eth1'
-      - set nat source rule 20 source address '10.0.30.0/24'
-      - set nat source rule 20 translation address 'masquerade'
-
-      - set nat source rule 30 description 'Client → WAN'
-      - set nat source rule 30 outbound-interface name 'eth1'
-      - set nat source rule 30 source address '10.0.40.0/24'
-      - set nat source rule 30 translation address 'masquerade'
-
-      - set nat source rule 40 description 'Server → WAN'
-      - set nat source rule 40 outbound-interface name 'eth1'
-      - set nat source rule 40 source address '10.0.50.0/24'
-      - set nat source rule 40 translation address 'masquerade'
-
-      - set nat source rule 50 description 'WiFi-Secure → WAN'
-      - set nat source rule 50 outbound-interface name 'eth1'
-      - set nat source rule 50 source address '10.0.60.0/24'
-      - set nat source rule 50 translation address 'masquerade'
-
-      - set nat source rule 60 description 'Cluster → WAN'
-      - set nat source rule 60 outbound-interface name 'eth1'
-      - set nat source rule 60 source address '10.0.100.0/24'
-      - set nat source rule 60 translation address 'masquerade'
-
-      - set nat source rule 70 description 'MGMT → WAN'
-      - set nat source rule 70 outbound-interface name 'eth1'
-      - set nat source rule 70 source address '10.0.200.0/24'
-      - set nat source rule 70 translation address 'masquerade'
-
-      # =================================================================
-      # FIREWALL — Zone-Based Policy
-      #
-      # Grundregel: KEIN VLAN darf in ein anderes VLAN (Default Deny).
-      # VyOS lässt traffic durch wenn KEINE Policy zwischen zwei Zonen
-      # definiert ist → alle 42 inter-VLAN Paare müssen explizit gesetzt werden.
-      #
-      # Policies (wiederverwendbar, 1× definiert):
-      #   INTER-VLAN-DROP  — Default DROP, nur established/related durch
-      #   WAN-INBOUND-DROP — wie INTER-VLAN-DROP (für WAN-Eingang)
-      #   LOCAL-SERVICES   — Default DROP, erlaubt DNS(53) + NTP(123)
-      #   MGMT-TO-LOCAL    — Default ACCEPT (Admin-Zugang)
-      #   CLUSTER-TO-LOCAL — Default ACCEPT (K8s-API, BGP später)
-      #
-      # Nicht definiert (VyOS Default = ACCEPT):
-      #   Alle internen Zonen → WAN (Internet-Zugang via NAT)
-      # =================================================================
-
-      # --- Zonen definieren ---
-      - set firewall zone WAN interface 'eth1'
-      - set firewall zone DMZ interface 'eth2'
-      - set firewall zone WIFI-GUEST interface 'eth3'
-      - set firewall zone CLIENT interface 'eth4'
-      - set firewall zone SERVER interface 'eth5'
-      - set firewall zone WIFI-SEC interface 'eth6'
-      - set firewall zone CLUSTER interface 'eth7'
-      - set firewall zone MGMT interface 'eth8'
-      - set firewall zone LOCAL local-zone
-
-      # -------------------------------------------------------------------
-      # Policy-Definitionen (werden von Zone-Assignments referenziert)
-      # -------------------------------------------------------------------
-
-      # INTER-VLAN-DROP: Default DROP — nur established/related durch
-      - set firewall ipv4 name INTER-VLAN-DROP default-action 'drop'
-      - set firewall ipv4 name INTER-VLAN-DROP rule 10 action 'accept'
-      - set firewall ipv4 name INTER-VLAN-DROP rule 10 state established
-      - set firewall ipv4 name INTER-VLAN-DROP rule 10 state related
-      - set firewall ipv4 name INTER-VLAN-DROP rule 20 action 'drop'
-      - set firewall ipv4 name INTER-VLAN-DROP rule 20 state invalid
-
-      # WAN-INBOUND-DROP: WAN darf keine Verbindungen initiieren
-      - set firewall ipv4 name WAN-INBOUND-DROP default-action 'drop'
-      - set firewall ipv4 name WAN-INBOUND-DROP rule 10 action 'accept'
-      - set firewall ipv4 name WAN-INBOUND-DROP rule 10 state established
-      - set firewall ipv4 name WAN-INBOUND-DROP rule 10 state related
-      - set firewall ipv4 name WAN-INBOUND-DROP rule 20 action 'drop'
-      - set firewall ipv4 name WAN-INBOUND-DROP rule 20 state invalid
-
-      # LOCAL-SERVICES: interne Zonen dürfen nur DNS + NTP auf VyOS nutzen
-      - set firewall ipv4 name LOCAL-SERVICES default-action 'drop'
-      - set firewall ipv4 name LOCAL-SERVICES rule 10 action 'accept'
-      - set firewall ipv4 name LOCAL-SERVICES rule 10 state established
-      - set firewall ipv4 name LOCAL-SERVICES rule 10 state related
-      - set firewall ipv4 name LOCAL-SERVICES rule 20 action 'drop'
-      - set firewall ipv4 name LOCAL-SERVICES rule 20 state invalid
-      - set firewall ipv4 name LOCAL-SERVICES rule 30 action 'accept'
-      - set firewall ipv4 name LOCAL-SERVICES rule 30 description 'DNS'
-      - set firewall ipv4 name LOCAL-SERVICES rule 30 destination port '53'
-      - set firewall ipv4 name LOCAL-SERVICES rule 30 protocol 'tcp_udp'
-      - set firewall ipv4 name LOCAL-SERVICES rule 40 action 'accept'
-      - set firewall ipv4 name LOCAL-SERVICES rule 40 description 'NTP'
-      - set firewall ipv4 name LOCAL-SERVICES rule 40 destination port '123'
-      - set firewall ipv4 name LOCAL-SERVICES rule 40 protocol 'udp'
-
-      # MGMT-TO-LOCAL: Admin hat vollen Zugang zu VyOS
-      - set firewall ipv4 name MGMT-TO-LOCAL default-action 'accept'
-
-      # CLUSTER-TO-LOCAL: K8s-Nodes haben vollen Zugang (DNS, BGP, Management)
-      - set firewall ipv4 name CLUSTER-TO-LOCAL default-action 'accept'
-
-      # -------------------------------------------------------------------
-      # WAN → interne Zonen: nur established/related (kein Inbound)
-      # -------------------------------------------------------------------
-      - set firewall zone LOCAL from WAN firewall name 'WAN-INBOUND-DROP'
-      - set firewall zone DMZ from WAN firewall name 'WAN-INBOUND-DROP'
-      - set firewall zone WIFI-GUEST from WAN firewall name 'WAN-INBOUND-DROP'
-      - set firewall zone CLIENT from WAN firewall name 'WAN-INBOUND-DROP'
-      - set firewall zone SERVER from WAN firewall name 'WAN-INBOUND-DROP'
-      - set firewall zone WIFI-SEC from WAN firewall name 'WAN-INBOUND-DROP'
-      - set firewall zone CLUSTER from WAN firewall name 'WAN-INBOUND-DROP'
-      - set firewall zone MGMT from WAN firewall name 'WAN-INBOUND-DROP'
-
-      # -------------------------------------------------------------------
-      # → LOCAL: jede Zone darf nur DNS+NTP (außer MGMT + CLUSTER = voll)
-      # -------------------------------------------------------------------
-      - set firewall zone LOCAL from DMZ firewall name 'LOCAL-SERVICES'
-      - set firewall zone LOCAL from WIFI-GUEST firewall name 'LOCAL-SERVICES'
-      - set firewall zone LOCAL from CLIENT firewall name 'LOCAL-SERVICES'
-      - set firewall zone LOCAL from SERVER firewall name 'LOCAL-SERVICES'
-      - set firewall zone LOCAL from WIFI-SEC firewall name 'LOCAL-SERVICES'
-      - set firewall zone LOCAL from MGMT firewall name 'MGMT-TO-LOCAL'
-      - set firewall zone LOCAL from CLUSTER firewall name 'CLUSTER-TO-LOCAL'
-
-      # -------------------------------------------------------------------
-      # Inter-VLAN: ALLE Paare explizit DROP (42 Richtungen)
-      # VyOS Default = ACCEPT wenn keine Policy → muss alles gesetzt werden!
-      # -------------------------------------------------------------------
-
-      # DMZ (eth2) → alle anderen internen Zonen
-      - set firewall zone WIFI-GUEST from DMZ firewall name 'INTER-VLAN-DROP'
-      - set firewall zone CLIENT from DMZ firewall name 'INTER-VLAN-DROP'
-      - set firewall zone SERVER from DMZ firewall name 'INTER-VLAN-DROP'
-      - set firewall zone WIFI-SEC from DMZ firewall name 'INTER-VLAN-DROP'
-      - set firewall zone CLUSTER from DMZ firewall name 'INTER-VLAN-DROP'
-      - set firewall zone MGMT from DMZ firewall name 'INTER-VLAN-DROP'
-
-      # WIFI-GUEST (eth3) → alle anderen internen Zonen
-      - set firewall zone DMZ from WIFI-GUEST firewall name 'INTER-VLAN-DROP'
-      - set firewall zone CLIENT from WIFI-GUEST firewall name 'INTER-VLAN-DROP'
-      - set firewall zone SERVER from WIFI-GUEST firewall name 'INTER-VLAN-DROP'
-      - set firewall zone WIFI-SEC from WIFI-GUEST firewall name 'INTER-VLAN-DROP'
-      - set firewall zone CLUSTER from WIFI-GUEST firewall name 'INTER-VLAN-DROP'
-      - set firewall zone MGMT from WIFI-GUEST firewall name 'INTER-VLAN-DROP'
-
-      # CLIENT (eth4) → alle anderen internen Zonen
-      - set firewall zone DMZ from CLIENT firewall name 'INTER-VLAN-DROP'
-      - set firewall zone WIFI-GUEST from CLIENT firewall name 'INTER-VLAN-DROP'
-      - set firewall zone SERVER from CLIENT firewall name 'INTER-VLAN-DROP'
-      - set firewall zone WIFI-SEC from CLIENT firewall name 'INTER-VLAN-DROP'
-      - set firewall zone CLUSTER from CLIENT firewall name 'INTER-VLAN-DROP'
-      - set firewall zone MGMT from CLIENT firewall name 'INTER-VLAN-DROP'
-
-      # SERVER (eth5) → alle anderen internen Zonen
-      - set firewall zone DMZ from SERVER firewall name 'INTER-VLAN-DROP'
-      - set firewall zone WIFI-GUEST from SERVER firewall name 'INTER-VLAN-DROP'
-      - set firewall zone CLIENT from SERVER firewall name 'INTER-VLAN-DROP'
-      - set firewall zone WIFI-SEC from SERVER firewall name 'INTER-VLAN-DROP'
-      - set firewall zone CLUSTER from SERVER firewall name 'INTER-VLAN-DROP'
-      - set firewall zone MGMT from SERVER firewall name 'INTER-VLAN-DROP'
-
-      # WIFI-SEC (eth6) → alle anderen internen Zonen
-      - set firewall zone DMZ from WIFI-SEC firewall name 'INTER-VLAN-DROP'
-      - set firewall zone WIFI-GUEST from WIFI-SEC firewall name 'INTER-VLAN-DROP'
-      - set firewall zone CLIENT from WIFI-SEC firewall name 'INTER-VLAN-DROP'
-      - set firewall zone SERVER from WIFI-SEC firewall name 'INTER-VLAN-DROP'
-      - set firewall zone CLUSTER from WIFI-SEC firewall name 'INTER-VLAN-DROP'
-      - set firewall zone MGMT from WIFI-SEC firewall name 'INTER-VLAN-DROP'
-
-      # CLUSTER (eth7) → alle anderen internen Zonen
-      - set firewall zone DMZ from CLUSTER firewall name 'INTER-VLAN-DROP'
-      - set firewall zone WIFI-GUEST from CLUSTER firewall name 'INTER-VLAN-DROP'
-      - set firewall zone CLIENT from CLUSTER firewall name 'INTER-VLAN-DROP'
-      - set firewall zone SERVER from CLUSTER firewall name 'INTER-VLAN-DROP'
-      - set firewall zone WIFI-SEC from CLUSTER firewall name 'INTER-VLAN-DROP'
-      - set firewall zone MGMT from CLUSTER firewall name 'INTER-VLAN-DROP'
-
-      # MGMT (eth8) → alle anderen internen Zonen
-      - set firewall zone DMZ from MGMT firewall name 'INTER-VLAN-DROP'
-      - set firewall zone WIFI-GUEST from MGMT firewall name 'INTER-VLAN-DROP'
-      - set firewall zone CLIENT from MGMT firewall name 'INTER-VLAN-DROP'
-      - set firewall zone SERVER from MGMT firewall name 'INTER-VLAN-DROP'
-      - set firewall zone WIFI-SEC from MGMT firewall name 'INTER-VLAN-DROP'
-      - set firewall zone CLUSTER from MGMT firewall name 'INTER-VLAN-DROP'
-
-      # =================================================================
-      # HA / VRRP — VORBEREITET, NOCH NICHT AKTIV
-      # Aktivierung: wenn alter Router (.1) abgelöst wird
-      # VyOS-02 bekommt .191, VRRP-VIP wird .1
-      # =================================================================
-      # - set high-availability vrrp group DMZ vrid '10'
-      # - set high-availability vrrp group DMZ interface 'eth2'
-      # - set high-availability vrrp group DMZ address '10.0.10.1/24'
-      # - set high-availability vrrp group DMZ priority '200'
-      # - set high-availability vrrp group DMZ authentication password 'VRRP_SECRET'
-      # - set high-availability vrrp group DMZ authentication type 'plaintext-password'
-      # ... (gleiche Struktur für alle VLANs: WiFi-Guest=30, Client=40,
-      #      Server=50, WiFi-Sec=60, Cluster=100, MGMT=200)
-
-      # =================================================================
-      # BGP — VORBEREITET, NOCH NICHT AKTIV
-      # VyOS AS 65000 ↔ Cilium AS 65100
-      # =================================================================
-      # - set protocols bgp system-as '65000'
-      # - set protocols bgp parameters router-id '10.0.100.1'
-      # - set protocols bgp neighbor 10.0.100.13 remote-as '65100'
-      # - set protocols bgp neighbor 10.0.100.13 description 'm920x-03'
-
-  # Leeres meta-data erforderlich für cloud-init NoCloud
-  meta-data: ""
+    userdata: ENC[AES256_GCM,data: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,iv:jqfs/cA3A3WNdFhCPrU/RmSv4eIc9MKrUzP+Mh8AAjM=,tag:kmq1XHbkIT/xT2JJeQHTIw==,type:str]
+    #ENC[AES256_GCM,data:f1R608X5/40bIw4/jaDnGmxuQWYhOAWld0jE52ryieTP/+pjjkKBQKWfXNJmzuXwmcBmw5r7,iv:ZS2w63ZoP25bs1YV5B8/n+Cf5CwKKEHCU97uWy/2KTw=,tag:PetkxjL0Ey+1saKoEXd9aA==,type:comment]
+    meta-data: ""
+sops:
+    age:
+        - recipient: age1z6080dvy3sphcl4jq86ue78xns0ap2age97237yrzh87cmzsmfcqh43xee
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA2dTU2ck5HM1UwYU9xSlVi
+            Tjl1QUFQS01SZk9iRFpWb3p3TUFyMk93dEZRClFINzdodzUrMU5UcTg3SzAybGZQ
+            YXVBTnhxRjFwOFRsREIrZE1RKy9OQ2sKLS0tIDVJakROOEE4YVQ1aEQxaUgybC8w
+            ZCsvK21mVStkWGxVekoyWTQ2dktZRkUKnIzy9GK+lDsMDhr2MGsO336CErFTNQuO
+            kEqYegciY9AY7d+bJ9ULcZj8pOM+xzAGH87/RUaYszjLRiSNu0t5kA==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2026-02-25T10:32:04Z"
+    mac: ENC[AES256_GCM,data:qXHN84swaDoIXDwU+4Wqd1WHRiYZXMAPDf0Uzm6I9BJMLCAcAaRfiXiIsf3BinyHRj2mYAlakldR/45sASrzcBHoscbTHz2ccQdGXFb+wZg6c1gFQIprm6nXAbrH+odDxJ8PGYHyVV7UE98zhmVfIwvzQsuBoJtT2utrrn4JdkQ=,iv:XvlSMrJw0PjCeHaVxm0l4TQOYFqgu+cTDNByTEL+VTI=,tag:rSZThoeHqOf8HWgYDkPl1g==,type:str]
+    unencrypted_suffix: _unencrypted
+    version: 3.11.0

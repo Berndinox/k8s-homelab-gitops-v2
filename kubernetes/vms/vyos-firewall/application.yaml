@@ -4,9 +4,9 @@
 #
 # WICHTIG: VM startet nicht automatisch (running: false in vm.yaml).
 # Manueller Start nach:
-#   1. DataVolume URL in datavolume.yaml gesetzt + ge-synct
-#   2. DataVolume Status = Succeeded (CDI-Import fertig)
-#   3. SSH-Key in cloudinit.yaml eingetragen + ge-synct
+#   1. ContainerDisk Image gebaut (GH Actions vyos-image-builder)
+#   2. ghcr-pull-secret mit echtem PAT verschlüsselt + committed
+#   3. SSH-Key in cloudinit.yaml eingetragen + committed
 #
 # Dann: kubectl patch vm vyos-fw-01 -n vms --type=merge -p '{"spec":{"running":true}}'
 #
@@ -34,4 +34,6 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - ServerSideApply=true
+      # ServerSideApply absichtlich NICHT gesetzt:
+      # KubeVirt CRD deklariert cloudInitNoCloud.userDataSecretRef nicht im
+      # OpenAPI-Schema → SSA würde mit "field not declared in schema" fehlschlagen.

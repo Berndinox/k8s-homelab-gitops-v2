@@ -7,5 +7,6 @@
 # Entschlüsseln:  sops --decrypt <datei.yaml>
 # Bearbeiten:     sops <datei.yaml>
 creation_rules:
-  - path_regex: kubernetes/.*\.yaml$
+  # path_regex matcht gegen absoluten Pfad (auch Windows-Backslash-Variante)
+  - path_regex: kubernetes[/\\].*\.yaml$
     age: age1z6080dvy3sphcl4jq86ue78xns0ap2age97237yrzh87cmzsmfcqh43xee
