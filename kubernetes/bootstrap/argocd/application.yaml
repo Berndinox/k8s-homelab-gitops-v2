@@ -46,12 +46,16 @@ spec:
                   set -e
                   apk add --no-cache wget tar
                   # age (SOPS Entschlüsselung)
+                  # Hinweis: age nutzt sigsum-Proofs statt klassischer sha256-Dateien.
+                  # Download über HTTPS von github.com ist die primäre Sicherheitsgarantie.
                   wget -qO /tmp/age.tar.gz \
                     https://github.com/FiloSottile/age/releases/download/v1.2.1/age-v1.2.1-linux-amd64.tar.gz
                   tar xf /tmp/age.tar.gz --strip-components=1 -C /custom-tools age/age
-                  # ksops (Kustomize exec-plugin für SOPS)
+                  # ksops (Kustomize exec-plugin für SOPS) — SHA256 aus checksums.txt verifiziert
                   wget -qO /tmp/ksops.tar.gz \
                     https://github.com/viaduct-ai/kustomize-sops/releases/download/v4.3.3/ksops_4.3.3_Linux_x86_64.tar.gz
+                  echo "1ed1cd42c77afced1245b54ec211b8a38b61c1f23bbfa51fa361d7f777dcb0f8  /tmp/ksops.tar.gz" \
+                    | sha256sum -c -
                   tar xf /tmp/ksops.tar.gz -C /custom-tools ksops
                   chmod +x /custom-tools/age /custom-tools/ksops
               volumeMounts:

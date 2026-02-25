@@ -38,11 +38,12 @@ metadata:
     instance: vyos-fw-01
     role: firewall
 spec:
-  # running: false — erst starten wenn:
+  # runStrategy: Halted — erst starten wenn:
   #   1. SSH-Key in cloudinit.yaml eingetragen + committed
   #   2. ghcr-pull-secret im vms-Namespace vorhanden (SOPS decrypt)
   #   3. ContainerDisk Image in GHCR gebaut (GH Actions workflow_dispatch)
-  running: false
+  # VM starten: kubectl patch vm vyos-fw-01 -n vms --type=merge -p '{"spec":{"runStrategy":"Always"}}'
+  runStrategy: Halted
 
   template:
     metadata:
@@ -120,19 +121,18 @@ spec:
           autoattachSerialConsole: true
           autoattachGraphicsDevice: false
 
-      # --- Image Pull Secret für privates GHCR ---
-      imagePullSecrets:
-        - name: ghcr-pull-secret
-
       # --- Volumes ---
       volumes:
         - name: boot
           containerDisk:
             image: ghcr.io/berndinox/vyos-image-builder:2026.02
             imagePullPolicy: IfNotPresent
+            # imagePullSecret ist ein Feld in containerDisk (KubeVirt-spezifisch, nicht K8s-Standard)
+            imagePullSecret: ghcr-pull-secret
         - name: cloudinit
           cloudInitNoCloud:
-            userDataSecretRef:
+            # secretRef (nicht userDataSecretRef) — KubeVirt-CRD v1.7.0 Feldname
+            secretRef:
               name: vyos-cloudinit
 
       # --- Netzwerke ---
