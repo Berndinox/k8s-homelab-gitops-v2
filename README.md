@@ -40,5 +40,4 @@ Alle Befehle und Schritte: [cluster/COMMANDS.md](cluster/COMMANDS.md)
 ```text
 cluster/     Talos-Config + Bootstrap-Befehle
 kubernetes/  ArgoCD Manifeste (Apps-of-Apps)
-docs/        VyOS BGP-Konfiguration
 ```

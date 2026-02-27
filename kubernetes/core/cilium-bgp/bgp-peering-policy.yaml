@@ -1,7 +1,6 @@
 ---
 # ACHTUNG: BGPv1 (CiliumBGPPeeringPolicy) wurde in Cilium 1.19 entfernt.
 #
-# Diese Datei muss neu geschrieben werden wenn BGP mit VyOS konfiguriert wird.
 # BGPv2 CRDs verwenden:
 #   - CiliumBGPClusterConfig   (globale BGP-Konfiguration, ersetzt CiliumBGPPeeringPolicy)
 #   - CiliumBGPPeerConfig      (Peer-Konfiguration: ASN, timers, graceful restart)
@@ -11,7 +10,7 @@
 #
 # Platzhalter-Werte für später:
 #   localASN:   65100     # Node/Cilium ASN (privater Bereich 64512-65534)
-#   peerASN:    65000     # VyOS ASN
-#   peerAddress: 10.0.100.1  # VyOS Interface-IP Richtung VLAN 100
+#   peerASN:    65000     # Router ASN
+#   peerAddress: 10.0.100.1  # Router Interface-IP Richtung VLAN 100
 #
 # TODO: BGPv2 Manifeste erstellen wenn Router konfiguriert ist.

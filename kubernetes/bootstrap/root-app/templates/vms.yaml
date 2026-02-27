@@ -1,5 +1,5 @@
 ---
-# VMs-Layer: KubeVirt VirtualMachines (VyOS Firewall, zukünftig weitere VMs)
+# VMs-Layer: KubeVirt VirtualMachines
 # sync-wave 1: nach core (KubeVirt+CDI müssen laufen)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
