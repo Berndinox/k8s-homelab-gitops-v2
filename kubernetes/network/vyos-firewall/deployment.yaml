@@ -30,10 +30,10 @@ spec:
               mountPath: /lib/modules
               readOnly: true
             - name: vyos-gitops
-              mountPath: /config/vyos-gitops
+              mountPath: /opt/vyos-gitops
               readOnly: true
             - name: watcher-script
-              mountPath: /config/scripts/config-watcher.sh
+              mountPath: /opt/vyos-gitops-scripts/config-watcher.sh
               subPath: config-watcher.sh
           lifecycle:
             postStart:
@@ -41,7 +41,7 @@ spec:
                 command:
                   - /bin/bash
                   - -c
-                  - "nohup /bin/vbash /config/scripts/config-watcher.sh &>/var/log/config-watcher.log &"
+                  - "nohup /bin/vbash /opt/vyos-gitops-scripts/config-watcher.sh &>/var/log/config-watcher.log &"
           resources:
             requests:
               memory: "512Mi"

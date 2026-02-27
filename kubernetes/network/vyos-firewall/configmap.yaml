@@ -43,7 +43,7 @@ data:
     #!/bin/vbash
     source /opt/vyatta/etc/functions/script-template
 
-    CONFIG_SOURCE="/config/vyos-gitops/vyos.conf"
+    CONFIG_SOURCE="/opt/vyos-gitops/vyos.conf"
     HASH_FILE="/run/vyos-config-watcher.hash"
     LOCK_FILE="/opt/vyatta/config/.lock"
     POLL_INTERVAL=10
