@@ -6,9 +6,24 @@ metadata:
   namespace: network
 data:
   # Native VyOS config format — delta-applied by watcher on change
+  # Keep the vyos-config-version footer! It prevents migration errors.
   vyos.conf: |
+    interfaces {
+        loopback lo {
+        }
+    }
     system {
         host-name vyos-k8s
+        config-management {
+            commit-revisions 100
+        }
+        login {
+            user vyos {
+                authentication {
+                    encrypted-password "$6$QxPS.uk6mfo$9QBSo8u1FkH16gMyAVhus6fU3LOzvLR9Z9.82m3tiHFAxTtIkhaZSWssSgzt4v4dGAL8rhVQxTg0oAG9/q11h/"
+                }
+            }
+        }
         name-server 1.1.1.1
         name-server 8.8.8.8
         syslog {
@@ -19,6 +34,10 @@ data:
             }
         }
     }
+
+    // Warning: Do not remove the following line.
+    // vyos-config-version: "bgp@6:broadcast-relay@1:cluster@2:config-management@1:conntrack@6:conntrack-sync@2:container@3:dhcp-relay@2:dhcp-server@11:dhcpv6-server@6:dns-dynamic@4:dns-forwarding@4:firewall@20:flow-accounting@3:https@7:ids@2:interfaces@34:ipoe-server@4:ipsec@14:isis@3:l2tp@9:lldp@3:mdns@1:monitoring@2:nat@8:nat66@3:nhrp@1:ntp@3:openconnect@3:openvpn@5:ospf@2:pim@1:policy@8:pppoe-server@12:pptp@5:qos@2:quagga@12:reverse-proxy@3:rip@1:rpki@2:salt@1:snmp@3:ssh@3:sstp@6:system@31:vpp@5:vrf@4:vrrp@4:vyos-accel-ppp@2:wanloadbalance@4:webproxy@2"
+    // Release version: 2026.02
   # Watcher script — polls for ConfigMap changes and delta-applies
   config-watcher.sh: |
     #!/bin/vbash
