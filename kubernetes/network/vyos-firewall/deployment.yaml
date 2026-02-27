@@ -61,7 +61,7 @@ spec:
                 path: vyos.conf
         - name: watcher-script
           configMap:
-            name: vyos-config
+            name: vyos-watcher
             items:
               - key: config-watcher.sh
                 path: config-watcher.sh
