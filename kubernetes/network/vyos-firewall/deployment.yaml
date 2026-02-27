@@ -29,10 +29,19 @@ spec:
             - name: host-modules
               mountPath: /lib/modules
               readOnly: true
-            - name: vyos-config
-              mountPath: /opt/vyatta/etc/config/scripts/vyos-config.sh
-              subPath: vyos-config.sh
+            - name: vyos-gitops
+              mountPath: /config/vyos-gitops
               readOnly: true
+            - name: watcher-script
+              mountPath: /config/scripts/config-watcher.sh
+              subPath: config-watcher.sh
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/bash
+                  - -c
+                  - "nohup /bin/vbash /config/scripts/config-watcher.sh &>/var/log/config-watcher.log &"
           resources:
             requests:
               memory: "512Mi"
@@ -44,7 +53,16 @@ spec:
         - name: host-modules
           hostPath:
             path: /lib/modules
-        - name: vyos-config
+        - name: vyos-gitops
           configMap:
             name: vyos-config
+            items:
+              - key: vyos.conf
+                path: vyos.conf
+        - name: watcher-script
+          configMap:
+            name: vyos-config
+            items:
+              - key: config-watcher.sh
+                path: config-watcher.sh
             defaultMode: 0755
