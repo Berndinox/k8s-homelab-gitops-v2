@@ -88,6 +88,10 @@ spec:
         operator:
           replicas: 1
 
+        # --- CNI co-existence with Multus ---
+        cni:
+          exclusive: false
+
         # --- Talos-specific requirements ---
         cgroup:
           autoMount:
