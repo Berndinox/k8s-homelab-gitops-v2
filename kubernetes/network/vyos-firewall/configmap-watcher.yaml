@@ -6,18 +6,13 @@ metadata:
   namespace: network
 data:
   config-watcher.sh: |
-    #!/bin/vbash
-    source /opt/vyatta/etc/functions/script-template
-
+    #!/bin/bash
+    # Outer watcher loop — plain bash, no VyOS shell needed
     CONFIG_SOURCE="/opt/vyos-gitops/vyos.conf"
+    APPLY_SCRIPT="/opt/vyos-gitops-scripts/apply-config.sh"
     HASH_FILE="/run/vyos-config-watcher.hash"
-    LOCK_FILE="/opt/vyatta/config/.lock"
     POLL_INTERVAL=10
     BOOT_TIMEOUT=300
-
-    if [ "$(id -g -n)" != 'vyattacfg' ]; then
-        exec sg vyattacfg -c "/bin/vbash $(readlink -f $0) $@"
-    fi
 
     log() { echo "$(date '+%Y-%m-%d %H:%M:%S') [config-watcher] $1"; }
 
@@ -26,6 +21,8 @@ data:
         local elapsed=0
         while [ $elapsed -lt $BOOT_TIMEOUT ]; do
             if systemctl is-active --quiet vyos-router.service; then
+                # Extra wait: let boot config commit finish
+                sleep 15
                 log "VyOS boot complete."
                 return 0
             fi
@@ -36,91 +33,66 @@ data:
         return 1
     }
 
-    is_locked() {
-        [ -f "$LOCK_FILE" ]
-    }
+    wait_for_boot || exit 1
 
-    apply_config() {
-        local config_file="$1"
+    log "Watching $CONFIG_SOURCE (every ${POLL_INTERVAL}s)"
 
-        if [ ! -f "$config_file" ]; then
-            log "ERROR: Config file not found: $config_file"
-            return 1
-        fi
+    while true; do
+        [ -f "$CONFIG_SOURCE" ] || { sleep "$POLL_INTERVAL"; continue; }
 
-        local lock_wait=0
-        while is_locked && [ $lock_wait -lt 60 ]; do
-            log "Config locked, waiting..."
-            sleep 5
-            lock_wait=$((lock_wait + 5))
-        done
-        if is_locked; then
-            log "ERROR: Config lock held >60s, skipping"
-            return 1
-        fi
+        current_hash=$(md5sum "$CONFIG_SOURCE" 2>/dev/null | cut -d' ' -f1)
+        last_hash=$(cat "$HASH_FILE" 2>/dev/null || echo "")
 
-        log "Loading config from $config_file"
-        configure
+        if [ "$current_hash" != "$last_hash" ]; then
+            log "Change detected (${last_hash:0:8} -> ${current_hash:0:8})"
 
-        if ! load "$config_file"; then
-            log "ERROR: load failed"
-            exit discard
-            return 1
-        fi
-
-        if ! compare >/dev/null 2>&1; then
-            log "Config identical, no changes."
-            exit discard
-            return 0
-        fi
-
-        log "Changes detected:"
-        compare
-        log "Committing delta..."
-
-        if commit; then
-            log "Commit OK"
-            save
-            exit
-            return 0
-        else
-            log "ERROR: commit failed, discarding"
-            exit discard
-            return 1
-        fi
-    }
-
-    main() {
-        wait_for_boot || return 1
-        sleep 5
-
-        log "Watching $CONFIG_SOURCE (every ${POLL_INTERVAL}s)"
-
-        if [ -f "$CONFIG_SOURCE" ]; then
-            if apply_config "$CONFIG_SOURCE"; then
-                md5sum "$CONFIG_SOURCE" 2>/dev/null | cut -d' ' -f1 > "$HASH_FILE"
+            # Run apply as separate vbash process — clean session every time
+            if sg vyattacfg -c "/bin/vbash $APPLY_SCRIPT $CONFIG_SOURCE" 2>&1 | tee -a /var/log/config-watcher.log; then
+                echo "$current_hash" > "$HASH_FILE"
+                log "Config applied successfully"
+            else
+                log "Apply failed (exit $?), retry next cycle"
+                # Force-clean stale lock if left behind
+                rm -f /opt/vyatta/config/.lock 2>/dev/null
             fi
-        else
-            log "No config at $CONFIG_SOURCE yet, waiting..."
         fi
 
-        while true; do
-            sleep "$POLL_INTERVAL"
-            [ -f "$CONFIG_SOURCE" ] || continue
+        sleep "$POLL_INTERVAL"
+    done
+  apply-config.sh: |
+    #!/bin/vbash
+    # Runs as isolated vbash process — clean session each time
+    source /opt/vyatta/etc/functions/script-template
 
-            local current_hash last_hash
-            current_hash=$(md5sum "$CONFIG_SOURCE" 2>/dev/null | cut -d' ' -f1)
-            last_hash=$(cat "$HASH_FILE" 2>/dev/null || echo "")
+    CONFIG_FILE="$1"
+    if [ -z "$CONFIG_FILE" ] || [ ! -f "$CONFIG_FILE" ]; then
+        echo "ERROR: Config file not found: $CONFIG_FILE"
+        exit 1
+    fi
 
-            if [ "$current_hash" != "$last_hash" ]; then
-                log "Change detected (${last_hash:0:8} -> ${current_hash:0:8})"
-                if apply_config "$CONFIG_SOURCE"; then
-                    echo "$current_hash" > "$HASH_FILE"
-                else
-                    log "Apply failed, retry next cycle"
-                fi
-            fi
-        done
-    }
+    configure
 
-    main "$@"
+    if ! load "$CONFIG_FILE"; then
+        echo "ERROR: load failed"
+        exit discard
+        exit 1
+    fi
+
+    if ! compare >/dev/null 2>&1; then
+        echo "Config identical, no changes needed."
+        exit discard
+        exit 0
+    fi
+
+    echo "Changes to apply:"
+    compare
+
+    if commit; then
+        echo "Commit OK"
+        save
+        exit
+    else
+        echo "ERROR: commit failed"
+        exit discard
+        exit 1
+    fi
