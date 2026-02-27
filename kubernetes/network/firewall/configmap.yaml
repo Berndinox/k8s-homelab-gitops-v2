@@ -2,12 +2,12 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: vyos-config
+  name: firewall-config
   namespace: network
 data:
-  # Native VyOS config format — delta-applied by watcher on change
-  # Keep the vyos-config-version footer! It prevents migration errors.
-  vyos.conf: |
+  # Router config (native format) — delta-applied by watcher on change
+  # Keep the config-version footer! It prevents migration errors.
+  router.conf: |
     interfaces {
         loopback lo {
         }

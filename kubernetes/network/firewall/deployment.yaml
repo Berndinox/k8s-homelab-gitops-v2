@@ -2,25 +2,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vyos-firewall
+  name: firewall
   namespace: network
   labels:
-    app: vyos-firewall
+    app: firewall
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: vyos-firewall
+      app: firewall
   template:
     metadata:
       labels:
-        app: vyos-firewall
+        app: firewall
     spec:
       hostNetwork: true
       containers:
-        - name: vyos
+        - name: router
           image: ghcr.io/berndinox/router:2026.02
           command: ["/sbin/init"]
           securityContext:
@@ -29,11 +29,11 @@ spec:
             - name: host-modules
               mountPath: /lib/modules
               readOnly: true
-            - name: vyos-gitops
-              mountPath: /opt/vyos-gitops
+            - name: gitops-config
+              mountPath: /opt/gitops-config
               readOnly: true
-            - name: watcher-scripts
-              mountPath: /opt/vyos-gitops-scripts
+            - name: gitops-scripts
+              mountPath: /opt/gitops-scripts
               readOnly: true
           lifecycle:
             postStart:
@@ -41,7 +41,7 @@ spec:
                 command:
                   - /bin/bash
                   - -c
-                  - "nohup /bin/bash /opt/vyos-gitops-scripts/config-watcher.sh &>/var/log/config-watcher.log &"
+                  - "nohup /bin/bash /opt/gitops-scripts/config-watcher.sh &>/var/log/config-watcher.log &"
           resources:
             requests:
               memory: "512Mi"
@@ -53,13 +53,13 @@ spec:
         - name: host-modules
           hostPath:
             path: /lib/modules
-        - name: vyos-gitops
+        - name: gitops-config
           configMap:
-            name: vyos-config
+            name: firewall-config
             items:
-              - key: vyos.conf
-                path: vyos.conf
-        - name: watcher-scripts
+              - key: router.conf
+                path: router.conf
+        - name: gitops-scripts
           configMap:
-            name: vyos-watcher
+            name: firewall-watcher
             defaultMode: 0755

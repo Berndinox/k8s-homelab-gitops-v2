@@ -2,28 +2,26 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: vyos-watcher
+  name: firewall-watcher
   namespace: network
 data:
   config-watcher.sh: |
     #!/bin/bash
-    # Outer watcher loop — plain bash, no VyOS shell needed
-    CONFIG_SOURCE="/opt/vyos-gitops/vyos.conf"
-    APPLY_SCRIPT="/opt/vyos-gitops-scripts/apply-config.sh"
-    HASH_FILE="/run/vyos-config-watcher.hash"
+    CONFIG_SOURCE="/opt/gitops-config/router.conf"
+    APPLY_SCRIPT="/opt/gitops-scripts/apply-config.sh"
+    HASH_FILE="/run/config-watcher.hash"
     POLL_INTERVAL=10
     BOOT_TIMEOUT=300
 
     log() { echo "$(date '+%Y-%m-%d %H:%M:%S') [config-watcher] $1"; }
 
     wait_for_boot() {
-        log "Waiting for vyos-router.service ..."
+        log "Waiting for router boot ..."
         local elapsed=0
         while [ $elapsed -lt $BOOT_TIMEOUT ]; do
             if systemctl is-active --quiet vyos-router.service; then
-                # Extra wait: let boot config commit finish
                 sleep 15
-                log "VyOS boot complete."
+                log "Router boot complete."
                 return 0
             fi
             sleep 5
@@ -46,13 +44,11 @@ data:
         if [ "$current_hash" != "$last_hash" ]; then
             log "Change detected (${last_hash:0:8} -> ${current_hash:0:8})"
 
-            # Run apply as separate vbash process — clean session every time
             if sg vyattacfg -c "/bin/vbash $APPLY_SCRIPT" 2>&1 | tee -a /var/log/config-watcher.log; then
                 echo "$current_hash" > "$HASH_FILE"
                 log "Config applied successfully"
             else
                 log "Apply failed (exit $?), retry next cycle"
-                # Force-clean stale lock if left behind
                 rm -f /opt/vyatta/config/.lock 2>/dev/null
             fi
         fi
@@ -61,10 +57,9 @@ data:
     done
   apply-config.sh: |
     #!/bin/vbash
-    # Runs as isolated vbash process — clean session each time
     source /opt/vyatta/etc/functions/script-template
 
-    CONFIG_FILE="/opt/vyos-gitops/vyos.conf"
+    CONFIG_FILE="/opt/gitops-config/router.conf"
     if [ ! -f "$CONFIG_FILE" ]; then
         echo "ERROR: Config file not found: $CONFIG_FILE"
         exit 1
