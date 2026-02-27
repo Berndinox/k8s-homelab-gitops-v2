@@ -22,71 +22,9 @@ spec:
         configs:
           params:
             server.insecure: true
-          cm:
-            # Kustomize v5: --enable-alpha-plugins aktiviert Plugin-System,
-            # --enable-exec erlaubt exec-Plugins (ksops für SOPS-Entschlüsselung)
-            kustomize.buildOptions: "--enable-alpha-plugins --enable-exec"
         server:
           service:
             type: LoadBalancer
-        repoServer:
-          # Age-Key + XDG_CONFIG_HOME damit ksops und sops die Tools finden
-          env:
-            - name: XDG_CONFIG_HOME
-              value: /home/argocd/.config
-            - name: SOPS_AGE_KEY_FILE
-              value: /home/argocd/.config/sops/age/keys.txt
-          # Init-Container lädt age + ksops in shared Volume
-          initContainers:
-            - name: install-sops-tools
-              image: alpine:3.20
-              command: [sh, -c]
-              args:
-                - |
-                  set -e
-                  apk add --no-cache wget tar
-                  # age (SOPS Entschlüsselung)
-                  # Hinweis: age nutzt sigsum-Proofs statt klassischer sha256-Dateien.
-                  # Download über HTTPS von github.com ist die primäre Sicherheitsgarantie.
-                  wget -qO /tmp/age.tar.gz \
-                    https://github.com/FiloSottile/age/releases/download/v1.2.1/age-v1.2.1-linux-amd64.tar.gz
-                  tar xf /tmp/age.tar.gz --strip-components=1 -C /custom-tools age/age
-                  # ksops (Kustomize exec-plugin für SOPS) — SHA256 aus checksums.txt verifiziert
-                  wget -qO /tmp/ksops.tar.gz \
-                    https://github.com/viaduct-ai/kustomize-sops/releases/download/v4.3.3/ksops_4.3.3_Linux_x86_64.tar.gz
-                  echo "1ed1cd42c77afced1245b54ec211b8a38b61c1f23bbfa51fa361d7f777dcb0f8  /tmp/ksops.tar.gz" \
-                    | sha256sum -c -
-                  tar xf /tmp/ksops.tar.gz -C /custom-tools ksops
-                  chmod +x /custom-tools/age /custom-tools/ksops
-              volumeMounts:
-                - mountPath: /custom-tools
-                  name: custom-tools
-          volumes:
-            - name: custom-tools
-              emptyDir: {}
-            # sops-age Secret muss manuell einmalig angelegt werden:
-            #   kubectl create secret generic sops-age -n argocd \
-            #     --from-file=keys.txt=$HOME/.config/sops/age/keys.txt
-            - name: sops-age
-              secret:
-                secretName: sops-age
-          volumeMounts:
-            # age binary im PATH
-            - mountPath: /usr/local/bin/age
-              name: custom-tools
-              subPath: age
-            # ksops im PATH (für config.kubernetes.io/function exec: path: ksops)
-            - mountPath: /usr/local/bin/ksops
-              name: custom-tools
-              subPath: ksops
-            # ksops auch als Legacy Kustomize exec-plugin (XDG-Pfad, Fallback)
-            - mountPath: /home/argocd/.config/kustomize/plugin/viaduct.ai/v1/ksops/ksops
-              name: custom-tools
-              subPath: ksops
-            # Age Private Key (read-only) für SOPS-Entschlüsselung
-            - mountPath: /home/argocd/.config/sops/age
-              name: sops-age
-              readOnly: true
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd

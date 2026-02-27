@@ -1,9 +1,0 @@
----
-# VMs laufen in eigenem Namespace — getrennt von Infra-Workloads
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: vms
-  labels:
-    pod-security.kubernetes.io/enforce: privileged
-    pod-security.kubernetes.io/enforce-version: latest
