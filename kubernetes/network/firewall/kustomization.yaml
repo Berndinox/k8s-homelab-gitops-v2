@@ -3,6 +3,16 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - namespace.yaml
+  # NADs — Multus NetworkAttachmentDefinitions (one per VLAN)
+  - nad-vlan5.yaml
+  - nad-vlan10.yaml
+  - nad-vlan30.yaml
+  - nad-vlan40.yaml
+  - nad-vlan50.yaml
+  - nad-vlan60.yaml
+  - nad-vlan100.yaml
+  - nad-vlan200.yaml
+  # Router
   - configmap.yaml
   - configmap-watcher.yaml
   - deployment.yaml

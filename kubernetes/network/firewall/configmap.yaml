@@ -7,9 +7,64 @@ metadata:
 data:
   # Router config (native format) — delta-applied by watcher on change
   # Keep the config-version footer! It prevents migration errors.
+  # Interface-Mapping (Multus NADs → VyOS):
+  #   eth0  = K8s Pod Network (Cilium, nicht anfassen)
+  #   eth1  = VLAN 5   WAN (DHCP vom ISP-Modem)
+  #   eth2  = VLAN 10  DMZ
+  #   eth3  = VLAN 30  WiFi Guest
+  #   eth4  = VLAN 40  Client
+  #   eth5  = VLAN 50  Server
+  #   eth6  = VLAN 60  WiFi Secure
+  #   eth7  = VLAN 100 Cluster (ipvlan auf bond0.100)
+  #   eth8  = VLAN 200 MGMT
   router.conf: |
     interfaces {
+        ethernet eth1 {
+            address dhcp
+            description "WAN (VLAN 5)"
+        }
+        ethernet eth2 {
+            address 10.0.10.199/24
+            description "DMZ (VLAN 10)"
+        }
+        ethernet eth3 {
+            address 10.0.30.199/24
+            description "WiFi Guest (VLAN 30)"
+        }
+        ethernet eth4 {
+            address 10.0.40.199/24
+            description "Client (VLAN 40)"
+        }
+        ethernet eth5 {
+            address 10.0.50.199/24
+            description "Server (VLAN 50)"
+        }
+        ethernet eth6 {
+            address 10.0.60.199/24
+            description "WiFi Secure (VLAN 60)"
+        }
+        ethernet eth7 {
+            address 10.0.100.199/24
+            description "Cluster (VLAN 100)"
+        }
+        ethernet eth8 {
+            address 10.0.200.199/24
+            description "MGMT (VLAN 200)"
+        }
         loopback lo {
+        }
+    }
+    nat {
+        source {
+            rule 100 {
+                outbound-interface name eth1
+                source {
+                    address 10.0.0.0/8
+                }
+                translation {
+                    address masquerade
+                }
+            }
         }
     }
     system {

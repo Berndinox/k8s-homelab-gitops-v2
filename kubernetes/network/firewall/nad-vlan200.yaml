@@ -2,15 +2,15 @@
 apiVersion: k8s.cni.cncf.io/v1
 kind: NetworkAttachmentDefinition
 metadata:
-  name: vlan-40-client
-  namespace: default
+  name: vlan-200-mgmt
+  namespace: network
 spec:
   config: |
     {
       "cniVersion": "0.3.1",
-      "name": "vlan-40-client",
+      "name": "vlan-200-mgmt",
       "type": "vlan",
       "master": "bond0",
-      "vlanId": 40,
-      "ipam": { "type": "dhcp" }
+      "vlanId": 200,
+      "ipam": {}
     }

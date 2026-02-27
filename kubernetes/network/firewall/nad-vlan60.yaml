@@ -3,7 +3,7 @@ apiVersion: k8s.cni.cncf.io/v1
 kind: NetworkAttachmentDefinition
 metadata:
   name: vlan-60-wifi-sec
-  namespace: default
+  namespace: network
 spec:
   config: |
     {
@@ -12,5 +12,5 @@ spec:
       "type": "vlan",
       "master": "bond0",
       "vlanId": 60,
-      "ipam": { "type": "dhcp" }
+      "ipam": {}
     }

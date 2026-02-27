@@ -1,0 +1,18 @@
+---
+# VLAN 100: ipvlan statt vlan — bond0.100 existiert bereits (Talos-managed)
+# ipvlan L2 erlaubt Host<->Pod Kommunikation (kein macvlan-Isolation-Problem)
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: vlan-100-cluster
+  namespace: network
+spec:
+  config: |
+    {
+      "cniVersion": "0.3.1",
+      "name": "vlan-100-cluster",
+      "type": "ipvlan",
+      "master": "bond0.100",
+      "mode": "l2",
+      "ipam": {}
+    }

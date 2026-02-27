@@ -2,15 +2,15 @@
 apiVersion: k8s.cni.cncf.io/v1
 kind: NetworkAttachmentDefinition
 metadata:
-  name: vlan-50-server
-  namespace: default
+  name: vlan-10-dmz
+  namespace: network
 spec:
   config: |
     {
       "cniVersion": "0.3.1",
-      "name": "vlan-50-server",
+      "name": "vlan-10-dmz",
       "type": "vlan",
       "master": "bond0",
-      "vlanId": 50,
-      "ipam": { "type": "dhcp" }
+      "vlanId": 10,
+      "ipam": {}
     }

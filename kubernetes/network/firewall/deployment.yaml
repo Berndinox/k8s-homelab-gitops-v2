@@ -17,8 +17,19 @@ spec:
     metadata:
       labels:
         app: firewall
+      annotations:
+        k8s.v1.cni.cncf.io/networks: |
+          [
+            {"name": "vlan-5-wan",       "interface": "eth1"},
+            {"name": "vlan-10-dmz",      "interface": "eth2"},
+            {"name": "vlan-30-wifi",     "interface": "eth3"},
+            {"name": "vlan-40-client",   "interface": "eth4"},
+            {"name": "vlan-50-server",   "interface": "eth5"},
+            {"name": "vlan-60-wifi-sec", "interface": "eth6"},
+            {"name": "vlan-100-cluster", "interface": "eth7"},
+            {"name": "vlan-200-mgmt",   "interface": "eth8"}
+          ]
     spec:
-      hostNetwork: true
       containers:
         - name: router
           image: ghcr.io/berndinox/router:2026.02

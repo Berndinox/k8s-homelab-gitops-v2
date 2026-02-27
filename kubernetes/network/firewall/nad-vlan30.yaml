@@ -3,7 +3,7 @@ apiVersion: k8s.cni.cncf.io/v1
 kind: NetworkAttachmentDefinition
 metadata:
   name: vlan-30-wifi
-  namespace: default
+  namespace: network
 spec:
   config: |
     {
@@ -12,5 +12,5 @@ spec:
       "type": "vlan",
       "master": "bond0",
       "vlanId": 30,
-      "ipam": { "type": "dhcp" }
+      "ipam": {}
     }
