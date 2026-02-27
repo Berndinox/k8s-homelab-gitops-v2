@@ -47,7 +47,7 @@ data:
             log "Change detected (${last_hash:0:8} -> ${current_hash:0:8})"
 
             # Run apply as separate vbash process — clean session every time
-            if sg vyattacfg -c "/bin/vbash $APPLY_SCRIPT $CONFIG_SOURCE" 2>&1 | tee -a /var/log/config-watcher.log; then
+            if sg vyattacfg -c "/bin/vbash $APPLY_SCRIPT" 2>&1 | tee -a /var/log/config-watcher.log; then
                 echo "$current_hash" > "$HASH_FILE"
                 log "Config applied successfully"
             else
@@ -64,8 +64,8 @@ data:
     # Runs as isolated vbash process — clean session each time
     source /opt/vyatta/etc/functions/script-template
 
-    CONFIG_FILE="$1"
-    if [ -z "$CONFIG_FILE" ] || [ ! -f "$CONFIG_FILE" ]; then
+    CONFIG_FILE="/opt/vyos-gitops/vyos.conf"
+    if [ ! -f "$CONFIG_FILE" ]; then
         echo "ERROR: Config file not found: $CONFIG_FILE"
         exit 1
     fi
