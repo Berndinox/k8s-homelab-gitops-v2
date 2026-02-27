@@ -4,3 +4,4 @@ customization:
       - siderolabs/intel-ucode        # CPU Microcode Updates (Spectre/Meltdown etc.)
       - siderolabs/iscsi-tools       # Longhorn: iscsid + iscsiadm
       - siderolabs/util-linux-tools  # Longhorn: fstrim
+      - siderolabs/cni-plugins       # Multus: vlan, ipvlan, macvlan, bridge etc.
