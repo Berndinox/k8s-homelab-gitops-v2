@@ -1,0 +1,50 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vyos-firewall
+  namespace: network
+  labels:
+    app: vyos-firewall
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: vyos-firewall
+  template:
+    metadata:
+      labels:
+        app: vyos-firewall
+    spec:
+      hostNetwork: true
+      containers:
+        - name: vyos
+          image: ghcr.io/berndinox/router:2026.02
+          command: ["/sbin/init"]
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: host-modules
+              mountPath: /lib/modules
+              readOnly: true
+            - name: vyos-config
+              mountPath: /opt/vyatta/etc/config/scripts/vyos-config.sh
+              subPath: vyos-config.sh
+              readOnly: true
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+      volumes:
+        - name: host-modules
+          hostPath:
+            path: /lib/modules
+        - name: vyos-config
+          configMap:
+            name: vyos-config
+            defaultMode: 0755

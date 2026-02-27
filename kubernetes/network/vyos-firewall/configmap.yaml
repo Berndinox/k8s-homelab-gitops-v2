@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vyos-config
+  namespace: network
+data:
+  # VyOS boot commands — applied on container start
+  # Edit these to change router configuration via GitOps
+  vyos-config.sh: |
+    #!/bin/vbash
+    source /opt/vyatta/etc/functions/script-template
+
+    # Hostname
+    set system host-name 'vyos-k8s'
+
+    # Placeholder: add your VyOS configuration here
+    # Examples:
+    # set interfaces ethernet eth0 address dhcp
+    # set service dhcp-server shared-network-name LAN ...
+    # set nat source rule 100 ...
+    # set firewall name WAN-IN ...
+
+    commit
+    save

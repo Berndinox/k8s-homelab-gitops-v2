@@ -1,10 +1,10 @@
 ---
-# VMs-Layer: KubeVirt VirtualMachines
-# sync-wave 1: nach core (KubeVirt+CDI müssen laufen)
+# Network-Layer: VyOS Router Container
+# sync-wave 1: nach core (CNI + Multus müssen laufen)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: vms
+  name: network
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -15,10 +15,10 @@ spec:
   source:
     repoURL: https://github.com/Berndinox/k8s-homelab-gitops-v2
     targetRevision: main
-    path: kubernetes/vms
+    path: kubernetes/network
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: network
   syncPolicy:
     automated:
       prune: true
