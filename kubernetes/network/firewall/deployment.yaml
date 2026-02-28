@@ -27,6 +27,8 @@ spec:
         # Fix: cgroupv1 im Guest erzwingen — systemd + cgroupv2 blockiert kata-agent exec
         io.katacontainers.config.hypervisor.kernel_params: "systemd.unified_cgroup_hierarchy=0 agent.unified_cgroup_hierarchy=0"
         io.katacontainers.config.runtime.sandbox_cgroup_only: "true"
+        # VyOS rootfs ist gross (~400MB) — mehr Zeit fuer VM-Boot + Image-Load
+        io.katacontainers.config.runtime.create_container_timeout: "300"
     spec:
       runtimeClassName: kata
       containers:
