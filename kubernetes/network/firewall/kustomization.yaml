@@ -13,6 +13,7 @@ resources:
   - nad-vlan100.yaml
   - nad-vlan200.yaml
   # Router
+  - sealed-secret.yaml
   - configmap.yaml
   - configmap-watcher.yaml
   - deployment.yaml

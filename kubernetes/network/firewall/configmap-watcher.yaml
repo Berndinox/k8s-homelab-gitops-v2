@@ -8,6 +8,8 @@ data:
   config-watcher.sh: |
     #!/bin/bash
     CONFIG_SOURCE="/opt/gitops-config/router.conf"
+    CONFIG_RENDERED="/run/router-rendered.conf"
+    SECRETS_DIR="/opt/gitops-secrets"
     APPLY_SCRIPT="/opt/gitops-scripts/apply-config.sh"
     HASH_FILE="/run/config-watcher.hash"
     POLL_INTERVAL=10
@@ -35,10 +37,21 @@ data:
 
     log "Watching $CONFIG_SOURCE (every ${POLL_INTERVAL}s)"
 
+    render_config() {
+        local src="$1" dst="$2"
+        cp "$src" "$dst"
+        if [ -f "${SECRETS_DIR}/vyos-password-hash" ]; then
+            local hash
+            hash=$(cat "${SECRETS_DIR}/vyos-password-hash")
+            sed -i "s|__VYOS_PASSWORD_HASH__|${hash}|g" "$dst"
+        fi
+    }
+
     while true; do
         [ -f "$CONFIG_SOURCE" ] || { sleep "$POLL_INTERVAL"; continue; }
 
-        current_hash=$(md5sum "$CONFIG_SOURCE" 2>/dev/null | cut -d' ' -f1)
+        render_config "$CONFIG_SOURCE" "$CONFIG_RENDERED"
+        current_hash=$(md5sum "$CONFIG_RENDERED" 2>/dev/null | cut -d' ' -f1)
         last_hash=$(cat "$HASH_FILE" 2>/dev/null || echo "")
 
         if [ "$current_hash" != "$last_hash" ]; then
@@ -59,7 +72,7 @@ data:
     #!/bin/vbash
     source /opt/vyatta/etc/functions/script-template
 
-    CONFIG_FILE="/opt/gitops-config/router.conf"
+    CONFIG_FILE="/run/router-rendered.conf"
     if [ ! -f "$CONFIG_FILE" ]; then
         echo "ERROR: Config file not found: $CONFIG_FILE"
         exit 1
