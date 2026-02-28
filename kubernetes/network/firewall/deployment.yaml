@@ -22,6 +22,8 @@ spec:
           [
             {"name": "trunk-bond0", "interface": "eth1"}
           ]
+        # Kata: macvtap statt tcfilter — direkter TAP fd an Cloud Hypervisor
+        io.katacontainers.config.runtime.internetworking_model: macvtap
     spec:
       runtimeClassName: kata
       containers:
@@ -51,11 +53,9 @@ spec:
             requests:
               memory: "512Mi"
               cpu: "250m"
-              macvtap.network.kubevirt.io/bond0: "1"
             limits:
               memory: "1Gi"
               cpu: "1000m"
-              macvtap.network.kubevirt.io/bond0: "1"
       volumes:
         - name: gitops-config
           configMap:

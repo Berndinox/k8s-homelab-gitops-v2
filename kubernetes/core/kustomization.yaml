@@ -5,7 +5,6 @@ resources:
   - cilium         # kein auto-sync — kritische CNI-Infrastruktur, manuell syncen
   - longhorn
   - multus
-  - macvtap-cni
   # cilium-bgp: BGPv2 Peering mit VyOS — aktivieren nach erfolgreicher Kata-Migration
   # Aktivierung: Kommentar entfernen, dann ArgoCD sync
   # - cilium-bgp
