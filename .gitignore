@@ -2,6 +2,9 @@
 talos/clusterconfig/
 cluster/talsecret.yaml
 
+# Sealed Secrets master key — NEVER commit (needed for disaster recovery)
+cluster/sealed-secrets-master-key.yaml
+
 # kubeconfig — local only
 kubeconfig
 kubeconfig-mgmt
