@@ -1,4 +1,5 @@
 ---
+# WAN: DHCP via VyOS — CNI braucht trotzdem eine IP, Link-Local reicht
 apiVersion: k8s.cni.cncf.io/v1
 kind: NetworkAttachmentDefinition
 metadata:
@@ -12,5 +13,8 @@ spec:
       "type": "vlan",
       "master": "bond0",
       "vlanId": 5,
-      "ipam": { "type": "static" }
+      "ipam": {
+        "type": "static",
+        "addresses": [{ "address": "169.254.199.1/32" }]
+      }
     }

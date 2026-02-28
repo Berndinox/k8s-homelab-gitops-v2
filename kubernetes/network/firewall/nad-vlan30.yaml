@@ -12,5 +12,8 @@ spec:
       "type": "vlan",
       "master": "bond0",
       "vlanId": 30,
-      "ipam": { "type": "static" }
+      "ipam": {
+        "type": "static",
+        "addresses": [{ "address": "10.0.30.199/24" }]
+      }
     }

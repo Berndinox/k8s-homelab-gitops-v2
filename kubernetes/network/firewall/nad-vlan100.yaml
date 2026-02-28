@@ -14,5 +14,8 @@ spec:
       "type": "ipvlan",
       "master": "bond0.100",
       "mode": "l2",
-      "ipam": { "type": "static" }
+      "ipam": {
+        "type": "static",
+        "addresses": [{ "address": "10.0.100.199/24" }]
+      }
     }
