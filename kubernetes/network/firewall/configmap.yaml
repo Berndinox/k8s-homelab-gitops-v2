@@ -7,49 +7,53 @@ metadata:
 data:
   # Router config (native format) — delta-applied by watcher on change
   # Keep the config-version footer! It prevents migration errors.
-  # Interface-Mapping (Multus NADs → VyOS):
-  #   eth0  = K8s Pod Network (Cilium, nicht anfassen)
-  #   eth1  = VLAN 5   WAN (DHCP vom ISP-Modem)
-  #   eth2  = VLAN 10  DMZ
-  #   eth3  = VLAN 30  WiFi Guest
-  #   eth4  = VLAN 40  Client
-  #   eth5  = VLAN 50  Server
-  #   eth6  = VLAN 60  WiFi Secure
-  #   eth7  = VLAN 100 Cluster (ipvlan auf bond0.100)
-  #   eth8  = VLAN 200 MGMT
+  # Interface-Mapping (Kata + macvtap trunk):
+  #   eth0     = K8s Pod Network (Cilium, nicht anfassen)
+  #   eth1     = macvtap trunk on bond0 (alle VLANs 802.1Q tagged)
+  #   eth1.5   = VLAN 5   WAN (DHCP vom ISP-Modem)
+  #   eth1.10  = VLAN 10  DMZ
+  #   eth1.30  = VLAN 30  WiFi Guest
+  #   eth1.40  = VLAN 40  Client
+  #   eth1.50  = VLAN 50  Server
+  #   eth1.60  = VLAN 60  WiFi Secure
+  #   eth1.100 = VLAN 100 Cluster
+  #   eth1.200 = VLAN 200 MGMT
   router.conf: |
     interfaces {
         ethernet eth1 {
-            address dhcp
-            description "WAN (VLAN 5)"
-        }
-        ethernet eth2 {
-            address 10.0.10.199/24
-            description "DMZ (VLAN 10)"
-        }
-        ethernet eth3 {
-            address 10.0.30.199/24
-            description "WiFi Guest (VLAN 30)"
-        }
-        ethernet eth4 {
-            address 10.0.40.199/24
-            description "Client (VLAN 40)"
-        }
-        ethernet eth5 {
-            address 10.0.50.199/24
-            description "Server (VLAN 50)"
-        }
-        ethernet eth6 {
-            address 10.0.60.199/24
-            description "WiFi Secure (VLAN 60)"
-        }
-        ethernet eth7 {
-            address 10.0.100.199/24
-            description "Cluster (VLAN 100)"
-        }
-        ethernet eth8 {
-            address 10.0.200.199/24
-            description "MGMT (VLAN 200)"
+            description "Trunk (bond0 via macvtap)"
+            vif 5 {
+                address dhcp
+                description "WAN (VLAN 5)"
+            }
+            vif 10 {
+                address 10.0.10.199/24
+                description "DMZ (VLAN 10)"
+            }
+            vif 30 {
+                address 10.0.30.199/24
+                description "WiFi Guest (VLAN 30)"
+            }
+            vif 40 {
+                address 10.0.40.199/24
+                description "Client (VLAN 40)"
+            }
+            vif 50 {
+                address 10.0.50.199/24
+                description "Server (VLAN 50)"
+            }
+            vif 60 {
+                address 10.0.60.199/24
+                description "WiFi Secure (VLAN 60)"
+            }
+            vif 100 {
+                address 10.0.100.199/24
+                description "Cluster (VLAN 100)"
+            }
+            vif 200 {
+                address 10.0.200.199/24
+                description "MGMT (VLAN 200)"
+            }
         }
         loopback lo {
         }
@@ -57,7 +61,7 @@ data:
     nat {
         source {
             rule 100 {
-                outbound-interface name eth1
+                outbound-interface name eth1.5
                 source {
                     address 10.0.0.0/8
                 }
@@ -85,6 +89,54 @@ data:
             global {
                 facility all {
                     level info
+                }
+            }
+        }
+    }
+
+    protocols {
+        bgp {
+            system-as 65000
+            neighbor 10.0.100.11 {
+                remote-as 65100
+                description "cilium-node-01"
+                address-family {
+                    ipv4-unicast {
+                    }
+                }
+            }
+            neighbor 10.0.100.12 {
+                remote-as 65100
+                description "cilium-node-02"
+                address-family {
+                    ipv4-unicast {
+                    }
+                }
+            }
+            neighbor 10.0.100.13 {
+                remote-as 65100
+                description "cilium-node-03"
+                address-family {
+                    ipv4-unicast {
+                    }
+                }
+            }
+            address-family {
+                ipv4-unicast {
+                    network 10.0.10.0/24 {
+                    }
+                    network 10.0.30.0/24 {
+                    }
+                    network 10.0.40.0/24 {
+                    }
+                    network 10.0.50.0/24 {
+                    }
+                    network 10.0.60.0/24 {
+                    }
+                    network 10.0.100.0/24 {
+                    }
+                    network 10.0.200.0/24 {
+                    }
                 }
             }
         }
