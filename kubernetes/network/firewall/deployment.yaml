@@ -24,6 +24,9 @@ spec:
           ]
         # Kata: tcfilter leitet Traffic von macvlan via TC-Regeln in die VM
         io.katacontainers.config.runtime.internetworking_model: tcfilter
+        # Fix: cgroupv1 im Guest erzwingen — systemd + cgroupv2 blockiert kata-agent exec
+        io.katacontainers.config.hypervisor.kernel_params: "systemd.unified_cgroup_hierarchy=0 agent.unified_cgroup_hierarchy=0"
+        io.katacontainers.config.runtime.sandbox_cgroup_only: "true"
     spec:
       runtimeClassName: kata
       containers:
