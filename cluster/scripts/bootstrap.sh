@@ -86,6 +86,8 @@ hubble:
     enabled: true
 operator:
   replicas: 1
+cni:
+  exclusive: false    # Allow Multus CNI config alongside Cilium
 cgroup:
   autoMount:
     enabled: false

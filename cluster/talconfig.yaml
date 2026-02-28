@@ -5,7 +5,7 @@ kubernetesVersion: v1.35.0
 endpoint: https://10.0.100.10:6443
 
 # Run: curl -sX POST --data-binary @schematic.yaml https://factory.talos.dev/schematics | jq -r .id
-talosImageURL: factory.talos.dev/installer/f4ea896279a9d9dd428f05f33d66c73414460dfdd5af381aebb35027684c3c81
+talosImageURL: factory.talos.dev/installer/36cd6536eaec8ba802be2d38974108359069cedba8857302f69792b26b87c010
 
 patches:
   - "@./patches/common.yaml"
