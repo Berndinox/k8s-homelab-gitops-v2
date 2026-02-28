@@ -5,7 +5,7 @@ resources:
   - cilium         # kein auto-sync — kritische CNI-Infrastruktur, manuell syncen
   - longhorn
   - multus
-  - kubevirt
-  # cilium-bgp: NICHT aktiv — BGP wird manuell nach Router-Konfiguration aktiviert
-  # Aktivierung: diese Zeile hinzufügen + BGP-Werte in cilium-bgp/ befüllen
+  - macvtap-cni
+  # cilium-bgp: BGPv2 Peering mit VyOS — aktivieren nach erfolgreicher Kata-Migration
+  # Aktivierung: Kommentar entfernen, dann ArgoCD sync
   # - cilium-bgp
