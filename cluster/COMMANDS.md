@@ -239,7 +239,7 @@ securityContext:
 EOF
 
 helm upgrade --install cilium cilium/cilium \
-  --version 1.17.2 \
+  --version 1.19.1 \
   --namespace kube-system \
   -f /tmp/cilium-values.yaml \
   --wait --timeout 5m
@@ -262,7 +262,7 @@ helm repo update argo
 kubectl create namespace argocd
 
 helm upgrade --install argocd argo/argo-cd \
-  --version 7.8.3 \
+  --version 9.4.4 \
   --namespace argocd \
   --set server.insecure=true \
   --set server.service.type=LoadBalancer \
