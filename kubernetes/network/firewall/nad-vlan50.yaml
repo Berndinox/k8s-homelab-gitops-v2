@@ -11,6 +11,5 @@ spec:
       "name": "vlan-50-server",
       "type": "vlan",
       "master": "bond0",
-      "vlanId": 50,
-      "ipam": {}
+      "vlanId": 50
     }

@@ -11,6 +11,5 @@ spec:
       "name": "vlan-5-wan",
       "type": "vlan",
       "master": "bond0",
-      "vlanId": 5,
-      "ipam": {}
+      "vlanId": 5
     }

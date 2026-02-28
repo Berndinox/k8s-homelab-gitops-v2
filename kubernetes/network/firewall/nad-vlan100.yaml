@@ -13,6 +13,5 @@ spec:
       "name": "vlan-100-cluster",
       "type": "ipvlan",
       "master": "bond0.100",
-      "mode": "l2",
-      "ipam": {}
+      "mode": "l2"
     }

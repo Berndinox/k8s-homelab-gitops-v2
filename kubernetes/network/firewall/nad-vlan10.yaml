@@ -11,6 +11,5 @@ spec:
       "name": "vlan-10-dmz",
       "type": "vlan",
       "master": "bond0",
-      "vlanId": 10,
-      "ipam": {}
+      "vlanId": 10
     }

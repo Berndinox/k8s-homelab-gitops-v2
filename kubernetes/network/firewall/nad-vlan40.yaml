@@ -11,6 +11,5 @@ spec:
       "name": "vlan-40-client",
       "type": "vlan",
       "master": "bond0",
-      "vlanId": 40,
-      "ipam": {}
+      "vlanId": 40
     }
