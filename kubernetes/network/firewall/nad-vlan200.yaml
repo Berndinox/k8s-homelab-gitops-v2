@@ -11,5 +11,6 @@ spec:
       "name": "vlan-200-mgmt",
       "type": "vlan",
       "master": "bond0",
-      "vlanId": 200
+      "vlanId": 200,
+      "ipam": { "type": "static" }
     }

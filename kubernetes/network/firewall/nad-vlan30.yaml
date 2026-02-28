@@ -11,5 +11,6 @@ spec:
       "name": "vlan-30-wifi",
       "type": "vlan",
       "master": "bond0",
-      "vlanId": 30
+      "vlanId": 30,
+      "ipam": { "type": "static" }
     }

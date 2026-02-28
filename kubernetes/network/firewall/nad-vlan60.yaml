@@ -11,5 +11,6 @@ spec:
       "name": "vlan-60-wifi-sec",
       "type": "vlan",
       "master": "bond0",
-      "vlanId": 60
+      "vlanId": 60,
+      "ipam": { "type": "static" }
     }
