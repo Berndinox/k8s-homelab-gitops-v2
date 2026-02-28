@@ -22,8 +22,8 @@ spec:
           [
             {"name": "trunk-bond0", "interface": "eth1"}
           ]
-        # Kata: macvtap statt tcfilter — direkter TAP fd an Cloud Hypervisor
-        io.katacontainers.config.runtime.internetworking_model: macvtap
+        # Kata: tcfilter leitet Traffic von macvlan via TC-Regeln in die VM
+        io.katacontainers.config.runtime.internetworking_model: tcfilter
     spec:
       runtimeClassName: kata
       containers:
