@@ -1,16 +1,59 @@
 ---
-# ACHTUNG: BGPv1 (CiliumBGPPeeringPolicy) wurde in Cilium 1.19 entfernt.
-#
-# BGPv2 CRDs verwenden:
-#   - CiliumBGPClusterConfig   (globale BGP-Konfiguration, ersetzt CiliumBGPPeeringPolicy)
-#   - CiliumBGPPeerConfig      (Peer-Konfiguration: ASN, timers, graceful restart)
-#   - CiliumBGPAdvertisement   (was wird announciert: LB-Services, Pod-CIDRs)
-#
-# Referenz BGPv2: https://docs.cilium.io/en/v1.19/network/bgp-control-plane/bgp-control-plane-v2/
-#
-# Platzhalter-Werte für später:
-#   localASN:   65100     # Node/Cilium ASN (privater Bereich 64512-65534)
-#   peerASN:    65000     # Router ASN
-#   peerAddress: 10.0.100.1  # Router Interface-IP Richtung VLAN 100
-#
-# TODO: BGPv2 Manifeste erstellen wenn Router konfiguriert ist.
+# BGPv2 — Cilium ↔ VyOS Peering over VLAN 100
+# Cilium ASN 65100 peers with VyOS ASN 65000 on 10.0.100.199
+# Advertises: Pod CIDRs + LoadBalancer Service IPs
+
+# Cluster-wide BGP config: enable BGP on all nodes
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPClusterConfig
+metadata:
+  name: bgp-cluster
+spec:
+  nodeSelector:
+    matchLabels:
+      kubernetes.io/os: linux
+  bgpInstances:
+    - name: default
+      localASN: 65100
+      peers:
+        - name: vyos-router
+          peerConfigRef:
+            name: vyos-peer
+          peerAddress: 10.0.100.199
+          peerASN: 65000
+---
+# Peer config: timers, graceful restart
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPPeerConfig
+metadata:
+  name: vyos-peer
+spec:
+  timers:
+    holdTimeSeconds: 90
+    keepAliveTimeSeconds: 30
+    connectRetryTimeSeconds: 120
+  gracefulRestart:
+    enabled: true
+    restartTimeSeconds: 120
+  families:
+    - afi: ipv4
+      safi: unicast
+---
+# What to advertise: Pod CIDRs + LoadBalancer IPs
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPAdvertisement
+metadata:
+  name: bgp-advertisements
+spec:
+  advertisements:
+    - advertisementType: PodCIDR
+    - advertisementType: Service
+      service:
+        addresses:
+          - ExternalIP
+          - LoadBalancerIP
+      selector:
+        matchExpressions:
+          - key: somekey
+            operator: NotIn
+            values: ["never-match"]
