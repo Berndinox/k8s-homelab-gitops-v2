@@ -94,6 +94,12 @@ data:
         }
     }
 
+    service {
+        ssh {
+            port 22
+        }
+    }
+
     protocols {
         bgp {
             system-as 65000
