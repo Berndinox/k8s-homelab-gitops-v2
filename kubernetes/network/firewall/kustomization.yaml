@@ -4,9 +4,10 @@ kind: Kustomization
 resources:
   - namespace.yaml
   # RuntimeClass for Kata Containers (VM-Isolation)
+  # CLEANUP-LATER: runtimeclass.yaml entfernen wenn Kata entfernt wird
   - runtimeclass.yaml
-  # Single macvtap trunk NAD (VyOS handles VLANs internally)
-  - nad-trunk.yaml
+  # NAD (nad-trunk.yaml) entfernt — macvlan wird nicht mehr benötigt
+  # (Firewall-Pod wird nach MikroTik-Migration ebenfalls entfernt)
   # Router
   - sealed-secret.yaml
   - configmap.yaml

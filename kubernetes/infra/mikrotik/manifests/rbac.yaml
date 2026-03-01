@@ -1,0 +1,31 @@
+---
+# Role: Terraform kubernetes backend needs Secret access to store state
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tofu-mikrotik-state
+  namespace: infra
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "create", "update", "patch", "delete"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tofu-mikrotik-state
+  namespace: infra
+subjects:
+  - kind: ServiceAccount
+    name: tofu-mikrotik
+    namespace: infra
+roleRef:
+  kind: Role
+  name: tofu-mikrotik-state
+  apiGroup: rbac.authorization.k8s.io

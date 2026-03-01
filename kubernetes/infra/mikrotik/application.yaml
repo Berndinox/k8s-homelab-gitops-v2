@@ -1,0 +1,28 @@
+---
+# MikroTik GitOps — OpenTofu reconciliation via CronJob
+# sync-wave 0: nach sealed-secrets (braucht Secret-Entschlüsselung)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mikrotik
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Berndinox/k8s-homelab-gitops-v2
+    targetRevision: main
+    path: kubernetes/infra/mikrotik/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: infra
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
