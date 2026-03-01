@@ -1,0 +1,90 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cilium
+  namespace: kube-system
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: cilium
+      version: 1.19.1
+      sourceRef:
+        kind: HelmRepository
+        name: cilium
+        namespace: flux-system
+  install:
+    crds: Create
+  upgrade:
+    crds: CreateReplace
+  driftDetection:
+    mode: warn
+    ignore:
+      - paths: ["/data"]
+        target: {kind: Secret, name: cilium-ca}
+      - paths: ["/data"]
+        target: {kind: Secret, name: hubble-server-certs}
+      - paths: ["/data"]
+        target: {kind: Secret, name: hubble-relay-client-certs}
+  values:
+    ipam:
+      mode: kubernetes
+    kubeProxyReplacement: true
+    routingMode: native
+    autoDirectNodeRoutes: true
+    ipv4NativeRoutingCIDR: 10.244.0.0/16
+    ipv6:
+      enabled: false
+    bpf:
+      masquerade: true
+      hostLegacyRouting: false
+      tproxy: true
+    loadBalancer:
+      algorithm: maglev
+      mode: hybrid
+      acceleration: disabled
+    endpointRoutes:
+      enabled: true
+    bandwidthManager:
+      enabled: true
+      bbr: true
+    hostFirewall:
+      enabled: false
+    hostPort:
+      enabled: true
+    localRedirectPolicy: true
+    bgpControlPlane:
+      enabled: true
+    hubble:
+      relay:
+        enabled: true
+      ui:
+        enabled: true
+    operator:
+      replicas: 1
+    cni:
+      exclusive: false
+    cgroup:
+      autoMount:
+        enabled: false
+      hostRoot: /sys/fs/cgroup
+    k8sServiceHost: localhost
+    k8sServicePort: 7445
+    securityContext:
+      capabilities:
+        ciliumAgent:
+          - CHOWN
+          - KILL
+          - NET_ADMIN
+          - NET_RAW
+          - IPC_LOCK
+          - SYS_ADMIN
+          - SYS_RESOURCE
+          - DAC_OVERRIDE
+          - FOWNER
+          - SETGID
+          - SETUID
+        cleanCiliumState:
+          - NET_ADMIN
+          - SYS_ADMIN
+          - SYS_RESOURCE

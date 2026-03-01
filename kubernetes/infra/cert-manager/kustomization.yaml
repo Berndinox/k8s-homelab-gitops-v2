@@ -1,8 +1,6 @@
----
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - application.yaml
-  # ClusterIssuer is NOT here — it requires cert-manager CRDs to exist first.
-  # Managed by the cert-manager ArgoCD app itself via extraObjects, or apply manually
-  # after cert-manager is running: kubectl apply -f clusterissuer.yaml
+  - helmrelease.yaml
+  # ClusterIssuers are managed via extraObjects in helmrelease.yaml
+  # clusterissuer.yaml exists as manual fallback — apply after cert-manager is running
