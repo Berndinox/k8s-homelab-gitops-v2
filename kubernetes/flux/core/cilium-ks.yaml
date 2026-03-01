@@ -7,8 +7,7 @@ spec:
   interval: 10m
   retryInterval: 1m
   timeout: 5m
-  # CNI kritisch — manuell triggern: flux reconcile ks core-cilium --with-source
-  suspend: true
+  suspend: false
   prune: false
   path: ./kubernetes/core/cilium
   sourceRef:
