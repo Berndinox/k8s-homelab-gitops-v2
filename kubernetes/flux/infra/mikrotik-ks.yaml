@@ -7,6 +7,7 @@ spec:
   interval: 10m
   dependsOn:
     - name: infra-sealed-secrets
+  prune: true
   path: ./kubernetes/infra/mikrotik/manifests
   sourceRef:
     kind: GitRepository
