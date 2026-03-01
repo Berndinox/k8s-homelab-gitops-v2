@@ -53,6 +53,8 @@ nodes:
             dhcp: false
           - vlanId: 60    # WiFi Secure — kein IP, linux-bridge NAD für KubeVirt VMs
             dhcp: false
+          - vlanId: 200   # MGMT — kein IP, linux-bridge NAD für KubeVirt VMs
+            dhcp: false
 
   - hostname: m920x-02
     ipAddress: 10.0.200.12
@@ -91,6 +93,8 @@ nodes:
             dhcp: false
           - vlanId: 60
             dhcp: false
+          - vlanId: 200
+            dhcp: false
 
   - hostname: m920x-03
     ipAddress: 10.0.200.13
@@ -128,4 +132,6 @@ nodes:
           - vlanId: 50
             dhcp: false
           - vlanId: 60
+            dhcp: false
+          - vlanId: 200
             dhcp: false
