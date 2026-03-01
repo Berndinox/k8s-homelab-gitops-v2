@@ -1,9 +1,9 @@
----
-# Role: Terraform kubernetes backend needs Secret access to store state
+# tofu-controller creates the tf-runner ServiceAccount automatically.
+# This RBAC grants the runner access to the Kubernetes backend state.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: tofu-mikrotik-state
+  name: tf-runner-state
   namespace: infra
 rules:
   - apiGroups: [""]
@@ -19,13 +19,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: tofu-mikrotik-state
+  name: tf-runner-state
   namespace: infra
 subjects:
   - kind: ServiceAccount
-    name: tofu-mikrotik
+    name: tf-runner
     namespace: infra
 roleRef:
   kind: Role
-  name: tofu-mikrotik-state
+  name: tf-runner-state
   apiGroup: rbac.authorization.k8s.io

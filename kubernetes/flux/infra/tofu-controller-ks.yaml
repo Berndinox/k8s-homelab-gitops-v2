@@ -1,15 +1,12 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: infra-mikrotik
+  name: infra-tofu-controller
   namespace: flux-system
 spec:
   interval: 10m
-  dependsOn:
-    - name: infra-sealed-secrets
-    - name: infra-tofu-controller
   prune: true
-  path: ./kubernetes/infra/mikrotik/manifests
+  path: ./kubernetes/infra/tofu-controller
   sourceRef:
     kind: GitRepository
     name: flux-system

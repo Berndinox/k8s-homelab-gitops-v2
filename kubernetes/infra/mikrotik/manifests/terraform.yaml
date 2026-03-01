@@ -1,0 +1,25 @@
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: mikrotik
+  namespace: infra
+spec:
+  interval: 10m
+  # approvePlan: auto   # NACH erstem Plan-Review aktivieren
+  path: ./kubernetes/infra/mikrotik/terraform
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  serviceAccountName: tf-runner
+  vars:
+    - name: mikrotik_user
+      valueFrom:
+        secretKeyRef:
+          name: mikrotik-credentials
+          key: username
+    - name: mikrotik_password
+      valueFrom:
+        secretKeyRef:
+          name: mikrotik-credentials
+          key: password

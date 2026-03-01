@@ -3,4 +3,5 @@ kind: Kustomization
 resources:
   - cert-manager-ks.yaml
   - sealed-secrets-ks.yaml
+  - tofu-controller-ks.yaml
   - mikrotik-ks.yaml

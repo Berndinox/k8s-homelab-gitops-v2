@@ -5,3 +5,4 @@ resources:
   - longhorn.yaml
   - jetstack.yaml
   - sealed-secrets.yaml
+  - tofu-controller.yaml
