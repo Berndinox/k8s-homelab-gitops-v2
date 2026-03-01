@@ -1,7 +1,7 @@
 ---
-# BGPv2 — Cilium ↔ VyOS Peering over VLAN 100
-# Cilium ASN 65100 peers with VyOS ASN 65000 on 10.0.100.199
-# Advertises: Pod CIDRs + LoadBalancer Service IPs
+# BGPv2 — Cilium ↔ MikroTik Peering over VLAN 100
+# Cilium ASN 65100 peers with MikroTik AS 65000 on 10.0.100.1
+# Advertises: Pod CIDRs + LoadBalancer Service IPs (DMZ 10.0.10.200/28, Server 10.0.50.200/28)
 
 # Cluster-wide BGP config: enable BGP on all nodes
 apiVersion: cilium.io/v2alpha1
@@ -16,17 +16,17 @@ spec:
     - name: default
       localASN: 65100
       peers:
-        - name: vyos-router
+        - name: mikrotik
           peerConfigRef:
-            name: vyos-peer
-          peerAddress: 10.0.100.199
+            name: mikrotik-peer
+          peerAddress: 10.0.100.1
           peerASN: 65000
 ---
 # Peer config: timers, graceful restart
 apiVersion: cilium.io/v2alpha1
 kind: CiliumBGPPeerConfig
 metadata:
-  name: vyos-peer
+  name: mikrotik-peer
 spec:
   timers:
     holdTimeSeconds: 90

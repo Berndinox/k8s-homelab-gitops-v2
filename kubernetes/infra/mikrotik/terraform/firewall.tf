@@ -38,6 +38,24 @@ resource "routeros_ip_firewall_filter" "input_dhcp" {
   comment      = "Allow DHCP requests"
 }
 
+resource "routeros_ip_firewall_filter" "input_dns_dmz" {
+  chain        = "input"
+  in_interface = "${var.bridge_name}.${var.vlan_dmz}"
+  protocol     = "udp"
+  dst_port     = "53"
+  action       = "accept"
+  comment      = "Allow DNS from DMZ VLAN"
+}
+
+resource "routeros_ip_firewall_filter" "input_dns_server" {
+  chain        = "input"
+  in_interface = "${var.bridge_name}.${var.vlan_server}"
+  protocol     = "udp"
+  dst_port     = "53"
+  action       = "accept"
+  comment      = "Allow DNS from Server VLAN"
+}
+
 resource "routeros_ip_firewall_filter" "input_dns_cluster" {
   chain        = "input"
   in_interface = "${var.bridge_name}.${var.vlan_cluster}"
@@ -146,6 +164,44 @@ resource "routeros_ip_firewall_filter" "fwd_mgmt_all" {
   in_interface = "${var.bridge_name}.${var.vlan_mgmt}"
   action       = "accept"
   comment      = "MGMT → all VLANs"
+}
+
+# DMZ → Cluster (for BGP-announced LB IPs: MikroTik routes 10.0.10.200/28 via VLAN 100)
+resource "routeros_ip_firewall_filter" "fwd_dmz_cluster" {
+  chain         = "forward"
+  in_interface  = "${var.bridge_name}.${var.vlan_dmz}"
+  out_interface = "${var.bridge_name}.${var.vlan_cluster}"
+  action        = "accept"
+  comment       = "DMZ → Cluster (reach BGP-announced K8s services)"
+  place_before  = routeros_ip_firewall_filter.fwd_drop_all.id
+}
+
+resource "routeros_ip_firewall_filter" "fwd_dmz_internet" {
+  chain         = "forward"
+  in_interface  = "${var.bridge_name}.${var.vlan_dmz}"
+  out_interface = "${var.bridge_name}.${var.vlan_wan}"
+  action        = "accept"
+  comment       = "DMZ → Internet"
+  place_before  = routeros_ip_firewall_filter.fwd_drop_all.id
+}
+
+# Server → Cluster (for BGP-announced LB IPs: MikroTik routes 10.0.50.200/28 via VLAN 100)
+resource "routeros_ip_firewall_filter" "fwd_server_cluster" {
+  chain         = "forward"
+  in_interface  = "${var.bridge_name}.${var.vlan_server}"
+  out_interface = "${var.bridge_name}.${var.vlan_cluster}"
+  action        = "accept"
+  comment       = "Server → Cluster (reach BGP-announced K8s services)"
+  place_before  = routeros_ip_firewall_filter.fwd_drop_all.id
+}
+
+resource "routeros_ip_firewall_filter" "fwd_server_internet" {
+  chain         = "forward"
+  in_interface  = "${var.bridge_name}.${var.vlan_server}"
+  out_interface = "${var.bridge_name}.${var.vlan_wan}"
+  action        = "accept"
+  comment       = "Server → Internet"
+  place_before  = routeros_ip_firewall_filter.fwd_drop_all.id
 }
 
 # Drop everything else

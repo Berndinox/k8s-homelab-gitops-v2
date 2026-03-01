@@ -18,19 +18,25 @@ variable "mikrotik_password" {
 
 # ── VLAN IDs ──────────────────────────────────────────────────────────────────
 variable "vlan_wan"     { default = 5 }
+variable "vlan_dmz"     { default = 10 }
 variable "vlan_wifi"    { default = 30 }
+variable "vlan_server"  { default = 50 }
 variable "vlan_wifisec" { default = 60 }
 variable "vlan_cluster" { default = 100 }
 variable "vlan_mgmt"    { default = 200 }
 
 # ── Subnets ───────────────────────────────────────────────────────────────────
+variable "subnet_dmz"     { default = "10.0.10.0/24" }
 variable "subnet_wifi"    { default = "10.0.30.0/24" }
+variable "subnet_server"  { default = "10.0.50.0/24" }
 variable "subnet_wifisec" { default = "10.0.60.0/24" }
 variable "subnet_cluster" { default = "10.0.100.0/24" }
 variable "subnet_mgmt"    { default = "10.0.200.0/24" }
 
 # ── Gateway IPs (MikroTik = .1 on each subnet) ───────────────────────────────
+variable "gw_dmz"     { default = "10.0.10.1/24" }
 variable "gw_wifi"    { default = "10.0.30.1/24" }
+variable "gw_server"  { default = "10.0.50.1/24" }
 variable "gw_wifisec" { default = "10.0.60.1/24" }
 variable "gw_cluster" { default = "10.0.100.1/24" }
 variable "gw_mgmt"    { default = "10.0.200.1/24" }

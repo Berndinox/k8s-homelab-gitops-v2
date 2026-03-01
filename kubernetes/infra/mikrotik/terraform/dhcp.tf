@@ -1,5 +1,49 @@
 # ── DHCP Server pro VLAN ──────────────────────────────────────────────────────
 
+# DMZ — Services via BGP announced (10.0.10.200-254 reserved for LB-IPs)
+resource "routeros_ip_pool" "dmz" {
+  name    = "pool-dmz"
+  ranges  = ["10.0.10.10-10.0.10.199"]
+  comment = "DMZ pool (10.0.10.200/28 reserved for Cilium BGP LB-IPs)"
+}
+
+resource "routeros_ip_dhcp_server" "dmz" {
+  name         = "dhcp-dmz"
+  interface    = "${var.bridge_name}.${var.vlan_dmz}"
+  address_pool = routeros_ip_pool.dmz.name
+  lease_time   = var.dhcp_lease_time
+  disabled     = false
+}
+
+resource "routeros_ip_dhcp_server_network" "dmz" {
+  address    = var.subnet_dmz
+  gateway    = "10.0.10.1"
+  dns_server = ["10.0.10.1"]
+  comment    = "DMZ network"
+}
+
+# Server — Services via BGP announced (10.0.50.200-254 reserved for LB-IPs)
+resource "routeros_ip_pool" "server" {
+  name    = "pool-server"
+  ranges  = ["10.0.50.10-10.0.50.199"]
+  comment = "Server pool (10.0.50.200/28 reserved for Cilium BGP LB-IPs)"
+}
+
+resource "routeros_ip_dhcp_server" "server" {
+  name         = "dhcp-server"
+  interface    = "${var.bridge_name}.${var.vlan_server}"
+  address_pool = routeros_ip_pool.server.name
+  lease_time   = var.dhcp_lease_time
+  disabled     = false
+}
+
+resource "routeros_ip_dhcp_server_network" "server" {
+  address    = var.subnet_server
+  gateway    = "10.0.50.1"
+  dns_server = ["10.0.50.1"]
+  comment    = "Server network"
+}
+
 # WiFi Guest — isoliert, nur Internet
 resource "routeros_ip_pool" "wifi" {
   name    = "pool-wifi"

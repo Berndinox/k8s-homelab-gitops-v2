@@ -67,6 +67,20 @@ resource "routeros_interface_bridge_vlan" "mgmt" {
   comment  = "MGMT VLAN ${var.vlan_mgmt} — trunks + bridge CPU (mgmt port is untagged/pvid)"
 }
 
+resource "routeros_interface_bridge_vlan" "dmz" {
+  bridge   = routeros_interface_bridge.main.name
+  vlan_ids = [var.vlan_dmz]
+  tagged   = [var.bridge_name, var.port_trunk_1, var.port_trunk_2]
+  comment  = "DMZ VLAN ${var.vlan_dmz} — 10G trunks + bridge CPU"
+}
+
+resource "routeros_interface_bridge_vlan" "server" {
+  bridge   = routeros_interface_bridge.main.name
+  vlan_ids = [var.vlan_server]
+  tagged   = [var.bridge_name, var.port_trunk_1, var.port_trunk_2]
+  comment  = "Server VLAN ${var.vlan_server} — 10G trunks + bridge CPU"
+}
+
 resource "routeros_interface_bridge_vlan" "wifi" {
   bridge   = routeros_interface_bridge.main.name
   vlan_ids = [var.vlan_wifi]
@@ -83,6 +97,20 @@ resource "routeros_interface_bridge_vlan" "wifisec" {
 
 # ── IP Addresses on Bridge VLAN Interfaces ───────────────────────────────────
 # MikroTik creates virtual VLAN interfaces as "bridge.VLANID"
+
+resource "routeros_ip_address" "dmz_gw" {
+  address   = var.gw_dmz
+  interface = "${var.bridge_name}.${var.vlan_dmz}"
+  comment   = "DMZ gateway"
+  depends_on = [routeros_interface_bridge_vlan.dmz]
+}
+
+resource "routeros_ip_address" "server_gw" {
+  address   = var.gw_server
+  interface = "${var.bridge_name}.${var.vlan_server}"
+  comment   = "Server gateway"
+  depends_on = [routeros_interface_bridge_vlan.server]
+}
 
 resource "routeros_ip_address" "cluster_gw" {
   address   = var.gw_cluster

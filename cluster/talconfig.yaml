@@ -45,6 +45,14 @@ nodes:
                 gateway: 10.0.100.1
             vip:
               ip: 10.0.100.10
+          - vlanId: 10    # DMZ — kein IP, linux-bridge NAD für KubeVirt VMs
+            dhcp: false
+          - vlanId: 30    # WiFi Guest — kein IP, linux-bridge NAD für KubeVirt VMs
+            dhcp: false
+          - vlanId: 50    # Server — kein IP, linux-bridge NAD für KubeVirt VMs
+            dhcp: false
+          - vlanId: 60    # WiFi Secure — kein IP, linux-bridge NAD für KubeVirt VMs
+            dhcp: false
 
   - hostname: m920x-02
     ipAddress: 10.0.200.12
@@ -75,6 +83,14 @@ nodes:
                 gateway: 10.0.100.1
             vip:
               ip: 10.0.100.10
+          - vlanId: 10
+            dhcp: false
+          - vlanId: 30
+            dhcp: false
+          - vlanId: 50
+            dhcp: false
+          - vlanId: 60
+            dhcp: false
 
   - hostname: m920x-03
     ipAddress: 10.0.200.13
@@ -105,3 +121,11 @@ nodes:
                 gateway: 10.0.100.1
             vip:
               ip: 10.0.100.10
+          - vlanId: 10
+            dhcp: false
+          - vlanId: 30
+            dhcp: false
+          - vlanId: 50
+            dhcp: false
+          - vlanId: 60
+            dhcp: false

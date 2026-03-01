@@ -5,6 +5,4 @@ resources:
   - cilium         # kein auto-sync — kritische CNI-Infrastruktur, manuell syncen
   - longhorn
   - multus
-  # cilium-bgp: BGPv2 Peering mit VyOS — aktivieren nach erfolgreicher Kata-Migration
-  # Aktivierung: Kommentar entfernen, dann ArgoCD sync
-  # - cilium-bgp
+  - cilium-bgp   # BGPv2 Peering mit MikroTik AS 65000
