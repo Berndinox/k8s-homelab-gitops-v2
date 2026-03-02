@@ -146,7 +146,7 @@ kubectl get nodes   # alle 3 Nodes: NotReady (noch kein CNI — normal)
 
 ## 6. + 7. Cilium + Flux installieren (Bootstrap-Script)
 
-> **Kurzform:** `bash cluster/scripts/bootstrap.sh` — installiert Cilium, Multus, wendet den Sealed-Secrets-Key an und bootet Flux.
+> **Kurzform:** `bash cluster/scripts/bootstrap.sh` — installiert Cilium, wendet den Sealed-Secrets-Key an und bootet Flux.
 > Voraussetzungen: `KUBECONFIG` + `GITHUB_TOKEN` gesetzt, `flux` CLI installiert.
 
 ```bash

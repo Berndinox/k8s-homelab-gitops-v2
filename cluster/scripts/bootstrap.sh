@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bootstrap.sh — Einmalige Cluster-Bootstrap-Schritte (Cilium + Multus + Flux)
+# bootstrap.sh — Einmalige Cluster-Bootstrap-Schritte (Cilium + Flux)
 #
 # Voraussetzungen:
 #   - talosctl bootstrap bereits ausgeführt (Schritt 4)
@@ -22,7 +22,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-echo "=== Bootstrap: Cilium + Multus + Flux ==="
+echo "=== Bootstrap: Cilium + Flux ==="
 echo "KUBECONFIG:   ${KUBECONFIG:-nicht gesetzt — bitte setzen!}"
 echo "GITHUB_TOKEN: ${GITHUB_TOKEN:+gesetzt}${GITHUB_TOKEN:-nicht gesetzt — bitte setzen!}"
 echo ""
@@ -47,7 +47,6 @@ kubectl cluster-info --request-timeout=5s || {
 }
 
 # --- Helm Repos ---
-echo "[1/5] Helm Repos hinzufügen..."
 helm repo add cilium https://helm.cilium.io/ 2>/dev/null || true
 helm repo update cilium
 
@@ -55,7 +54,7 @@ helm repo update cilium
 # helm install/upgrade scheitert ohne laufendes Cilium: das Helm-Release-Secret (>1MB)
 # überschreitet die effektive MTU der externen Verbindung zum API-Server.
 # helm template | kubectl apply umgeht das — Ressourcen werden einzeln gepusht.
-echo "[2/5] Cilium installieren (v1.19.1) — MTU-Workaround via helm template..."
+echo "[1/3] Cilium installieren (v1.19.1) — MTU-Workaround via helm template..."
 
 CILIUM_VALUES=$(mktemp /tmp/cilium-values-XXXX.yaml)
 trap "rm -f $CILIUM_VALUES" EXIT
@@ -144,14 +143,10 @@ if [[ "$NODE_COUNT" -eq 1 ]]; then
   kubectl taint nodes --all node-role.kubernetes.io/control-plane:NoSchedule- 2>/dev/null || true
 fi
 
-# --- Multus installieren ---
-echo "[3/5] Multus installieren..."
-kubectl apply -k "${REPO_ROOT}/kubernetes/core/multus/manifests/"
-echo "      Warte auf Multus DaemonSet..."
-kubectl -n kube-system rollout status daemonset/kube-multus-ds --timeout=3m
-
 # --- Sealed-Secrets Master Key ---
-echo "[4/5] Sealed-Secrets Master Key anwenden..."
+# kube-system existiert von Anfang an — Key kann sofort gesetzt werden.
+# sealed-secrets Controller (von Flux installiert) liest den Key beim Start.
+echo "[2/3] Sealed-Secrets Master Key anwenden..."
 if [[ -f "${REPO_ROOT}/cluster/sealed-secrets-master-key.yaml" ]]; then
   kubectl apply -f "${REPO_ROOT}/cluster/sealed-secrets-master-key.yaml"
   echo "      Key angewendet — Controller entschlüsselt SealedSecrets beim Start."
@@ -162,7 +157,7 @@ else
 fi
 
 # --- Flux Bootstrap ---
-echo "[5/5] Flux Bootstrap (Flux übernimmt ab hier alles weitere)..."
+echo "[3/3] Flux Bootstrap (Flux übernimmt ab hier alles weitere)..."
 flux bootstrap github \
   --owner=Berndinox \
   --repository=k8s-homelab-gitops-v2 \
