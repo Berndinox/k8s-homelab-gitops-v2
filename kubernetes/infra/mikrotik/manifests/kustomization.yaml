@@ -5,4 +5,5 @@ resources:
   - namespace.yaml
   - rbac-tfrunner.yaml
   - secret-credentials.yaml
+  - vlan200-mgmt-nad.yaml
   - terraform.yaml

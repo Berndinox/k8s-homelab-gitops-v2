@@ -28,8 +28,8 @@ resource "routeros_ip_dhcp_server_network" "dmz" {
 # Server — Services via BGP announced (10.0.50.200-254 reserved for LB-IPs)
 resource "routeros_ip_pool" "server" {
   name    = "pool-server"
-  ranges  = ["10.0.50.10-10.0.50.199"]
-  comment = "Server pool (10.0.50.200/28 reserved for Cilium BGP LB-IPs)"
+  ranges  = ["10.0.50.20-10.0.50.199"]
+  comment = "Server pool (.11-.13 reserved for K8s node br50 IPs; .200/28 for Cilium BGP LB-IPs)"
 }
 
 resource "routeros_ip_dhcp_server" "server" {
@@ -143,8 +143,8 @@ resource "routeros_ip_dhcp_server_network" "cluster" {
 # MGMT — Management access
 resource "routeros_ip_pool" "mgmt" {
   name    = "pool-mgmt"
-  ranges  = ["10.0.200.20-10.0.200.254"]
-  comment = "MGMT pool"
+  ranges  = ["10.0.200.21-10.0.200.254"]
+  comment = "MGMT pool (.20 reserved for tf-runner Multus VLAN 200)"
 }
 
 resource "routeros_ip_dhcp_server" "mgmt" {

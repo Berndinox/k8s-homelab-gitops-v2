@@ -12,6 +12,10 @@ spec:
     name: flux-system
     namespace: flux-system
   serviceAccountName: tf-runner
+  runnerPodTemplate:
+    metadata:
+      annotations:
+        k8s.v1.cni.cncf.io/networks: '[{"name":"vlan200-mgmt","namespace":"infra"}]'
   vars:
     - name: mikrotik_user
       valueFrom:

@@ -40,21 +40,30 @@ nodes:
             dhcp: false
             addresses:
               - 10.0.100.11/24
-            routes:
-              - network: 0.0.0.0/0
-                gateway: 10.0.100.1
             vip:
               ip: 10.0.100.10
           - vlanId: 10    # DMZ — kein IP, linux-bridge NAD für KubeVirt VMs
             dhcp: false
           - vlanId: 30    # WiFi Guest — kein IP, linux-bridge NAD für KubeVirt VMs
             dhcp: false
-          - vlanId: 50    # Server — kein IP, linux-bridge NAD für KubeVirt VMs
+          - vlanId: 50    # Server — Uplink für br50 (kein IP direkt)
             dhcp: false
           - vlanId: 60    # WiFi Secure — kein IP, linux-bridge NAD für KubeVirt VMs
             dhcp: false
-          - vlanId: 200   # MGMT — kein IP, linux-bridge NAD für KubeVirt VMs
+          - vlanId: 200   # MGMT — kein IP, Multus macvlan NAD für tf-runner
             dhcp: false
+      - interface: br50
+        dhcp: false
+        bridge:
+          stp:
+            enabled: false
+          interfaces:
+            - bond0.50
+        addresses:
+          - 10.0.50.11/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 10.0.50.1
 
   - hostname: m920x-02
     ipAddress: 10.0.200.12
@@ -80,21 +89,30 @@ nodes:
             dhcp: false
             addresses:
               - 10.0.100.12/24
-            routes:
-              - network: 0.0.0.0/0
-                gateway: 10.0.100.1
             vip:
               ip: 10.0.100.10
           - vlanId: 10
             dhcp: false
           - vlanId: 30
             dhcp: false
-          - vlanId: 50
+          - vlanId: 50    # Server — Uplink für br50 (kein IP direkt)
             dhcp: false
           - vlanId: 60
             dhcp: false
-          - vlanId: 200
+          - vlanId: 200   # MGMT — kein IP, Multus macvlan NAD für tf-runner
             dhcp: false
+      - interface: br50
+        dhcp: false
+        bridge:
+          stp:
+            enabled: false
+          interfaces:
+            - bond0.50
+        addresses:
+          - 10.0.50.12/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 10.0.50.1
 
   - hostname: m920x-03
     ipAddress: 10.0.200.13
@@ -120,18 +138,27 @@ nodes:
             dhcp: false
             addresses:
               - 10.0.100.13/24
-            routes:
-              - network: 0.0.0.0/0
-                gateway: 10.0.100.1
             vip:
               ip: 10.0.100.10
           - vlanId: 10
             dhcp: false
           - vlanId: 30
             dhcp: false
-          - vlanId: 50
+          - vlanId: 50    # Server — Uplink für br50 (kein IP direkt)
             dhcp: false
           - vlanId: 60
             dhcp: false
-          - vlanId: 200
+          - vlanId: 200   # MGMT — kein IP, Multus macvlan NAD für tf-runner
             dhcp: false
+      - interface: br50
+        dhcp: false
+        bridge:
+          stp:
+            enabled: false
+          interfaces:
+            - bond0.50
+        addresses:
+          - 10.0.50.13/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 10.0.50.1
