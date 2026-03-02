@@ -19,6 +19,7 @@ spec:
     crds: CreateReplace
   values:
     replicaCount: 1
+    allowCrossNamespaceRefs: true
     resources:
       limits:
         memory: 256Mi
