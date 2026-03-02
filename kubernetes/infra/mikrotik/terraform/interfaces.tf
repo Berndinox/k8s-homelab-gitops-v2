@@ -195,9 +195,11 @@ resource "routeros_ip_dhcp_client" "wan" {
   depends_on        = [routeros_interface_bridge_vlan.wan]
 }
 
-# DNS — MikroTik als lokaler Resolver (Upstream: Cloudflare/Google)
+# DNS — MikroTik als lokaler Resolver (Upstream: Quad9)
+# Clients erhalten Gateway-IP via DHCP → fragen MikroTik → MikroTik fragt Quad9.
+# Für AdGuard Home: servers hier auf AdGuard-IP umstellen (kein DHCP-Änderung nötig).
 resource "routeros_ip_dns" "main" {
-  servers               = ["1.1.1.1", "8.8.8.8"]
+  servers               = ["9.9.9.9", "149.112.112.112"]
   allow_remote_requests = true
 }
 
