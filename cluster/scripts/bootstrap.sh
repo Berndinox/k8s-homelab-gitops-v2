@@ -1,34 +1,43 @@
 #!/usr/bin/env bash
-# bootstrap.sh — Einmalige Cluster-Bootstrap-Schritte (Cilium + ArgoCD)
+# bootstrap.sh — Einmalige Cluster-Bootstrap-Schritte (Cilium + Multus + Flux)
 #
 # Voraussetzungen:
 #   - talosctl bootstrap bereits ausgeführt (Schritt 4)
 #   - kubeconfig vorhanden (Schritt 5)
-#   - KUBECONFIG gesetzt oder kubeconfig-Pfad unten anpassen
+#   - KUBECONFIG gesetzt
+#   - GITHUB_TOKEN gesetzt (Personal Access Token mit repo-Rechten)
+#   - flux CLI installiert: https://fluxcd.io/flux/installation/
 #
 # Hinweis M920x: API-Server lauscht auf VIP 10.0.100.10 (Cluster-VLAN).
 # Falls der Bootstrap-Rechner nur im MGMT-VLAN (10.0.200.x) ist:
 #   sed 's|10.0.100.10|10.0.200.13|g' clusterconfig/kubeconfig > clusterconfig/kubeconfig-mgmt
 #   export KUBECONFIG=$(pwd)/clusterconfig/kubeconfig-mgmt
 #
-# Ausführen aus dem cluster/ Verzeichnis:
-#   cd cluster/
-#   export KUBECONFIG=$(pwd)/clusterconfig/kubeconfig-mgmt
-#   bash scripts/bootstrap.sh
+# Ausführen aus dem Repo-Root:
+#   export KUBECONFIG=$(pwd)/cluster/clusterconfig/kubeconfig-mgmt
+#   export GITHUB_TOKEN=<dein-token>
+#   bash cluster/scripts/bootstrap.sh
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLUSTER_DIR="$(dirname "$SCRIPT_DIR")"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-echo "=== Bootstrap: Cilium + ArgoCD ==="
-echo "KUBECONFIG: ${KUBECONFIG:-nicht gesetzt — bitte setzen!}"
+echo "=== Bootstrap: Cilium + Multus + Flux ==="
+echo "KUBECONFIG:   ${KUBECONFIG:-nicht gesetzt — bitte setzen!}"
+echo "GITHUB_TOKEN: ${GITHUB_TOKEN:+gesetzt}${GITHUB_TOKEN:-nicht gesetzt — bitte setzen!}"
 echo ""
 
 # --- Preflight ---
+for cmd in kubectl helm flux; do
+  command -v "$cmd" &>/dev/null || { echo "ERROR: $cmd nicht gefunden. Bitte installieren."; exit 1; }
+done
+
 if [[ -z "${KUBECONFIG:-}" ]]; then
   echo "ERROR: KUBECONFIG ist nicht gesetzt."
-  echo "  export KUBECONFIG=\$(pwd)/clusterconfig/kubeconfig-mgmt"
+  exit 1
+fi
+if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+  echo "ERROR: GITHUB_TOKEN ist nicht gesetzt."
   exit 1
 fi
 
@@ -40,10 +49,14 @@ kubectl cluster-info --request-timeout=5s || {
 # --- Helm Repos ---
 echo "[1/5] Helm Repos hinzufügen..."
 helm repo add cilium https://helm.cilium.io/ 2>/dev/null || true
-helm repo add argo https://argoproj.github.io/argo-helm 2>/dev/null || true
-helm repo update cilium argo
+helm repo update cilium
 
-# --- Cilium Values ---
+# --- Cilium installieren (MTU-Workaround) ---
+# helm install/upgrade scheitert ohne laufendes Cilium: das Helm-Release-Secret (>1MB)
+# überschreitet die effektive MTU der externen Verbindung zum API-Server.
+# helm template | kubectl apply umgeht das — Ressourcen werden einzeln gepusht.
+echo "[2/5] Cilium installieren (v1.19.1) — MTU-Workaround via helm template..."
+
 CILIUM_VALUES=$(mktemp /tmp/cilium-values-XXXX.yaml)
 trap "rm -f $CILIUM_VALUES" EXIT
 
@@ -66,14 +79,14 @@ bpf:
 loadBalancer:
   algorithm: maglev
   mode: hybrid
-  acceleration: disabled   # M920x eno1/bond: kein nativer XDP-Support
+  acceleration: disabled
 endpointRoutes:
   enabled: true
 bandwidthManager:
   enabled: true
   bbr: true
 hostFirewall:
-  enabled: true
+  enabled: false
 hostPort:
   enabled: true
 localRedirectPolicy: true
@@ -87,7 +100,7 @@ hubble:
 operator:
   replicas: 1
 cni:
-  exclusive: false    # Allow Multus CNI config alongside Cilium
+  exclusive: false
 cgroup:
   autoMount:
     enabled: false
@@ -112,13 +125,14 @@ securityContext:
       - SYS_RESOURCE
 EOF
 
-# --- Cilium installieren ---
-echo "[2/5] Cilium installieren (v1.19.1)..."
-helm upgrade --install cilium cilium/cilium \
+helm template cilium cilium/cilium \
   --version 1.19.1 \
   --namespace kube-system \
   -f "$CILIUM_VALUES" \
-  --wait --timeout 8m
+  | kubectl apply -f -
+
+echo "      Warte auf Cilium DaemonSet..."
+kubectl -n kube-system rollout status daemonset/cilium --timeout=5m
 
 echo "      Node-Status:"
 kubectl get nodes
@@ -126,40 +140,44 @@ kubectl get nodes
 # --- Control-Plane-Taint (Single-Node) ---
 NODE_COUNT=$(kubectl get nodes --no-headers | wc -l)
 if [[ "$NODE_COUNT" -eq 1 ]]; then
-  echo "[3/5] Single-Node: Control-Plane-Taint entfernen..."
+  echo "      Single-Node: Control-Plane-Taint entfernen..."
   kubectl taint nodes --all node-role.kubernetes.io/control-plane:NoSchedule- 2>/dev/null || true
-else
-  echo "[3/5] Mehrere Nodes — Taint bleibt (Worker-Nodes vorhanden)"
 fi
 
-# --- ArgoCD installieren ---
-echo "[4/5] ArgoCD installieren (v9.4.4)..."
-kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+# --- Multus installieren ---
+echo "[3/5] Multus installieren..."
+kubectl apply -k "${REPO_ROOT}/kubernetes/core/multus/manifests/"
+echo "      Warte auf Multus DaemonSet..."
+kubectl -n kube-system rollout status daemonset/kube-multus-ds --timeout=3m
 
-helm upgrade --install argocd argo/argo-cd \
-  --version 9.4.4 \
-  --namespace argocd \
-  --set server.insecure=true \
-  --set server.service.type=LoadBalancer \
-  --set "configs.cm.application\.resourceTrackingMethod=annotation" \
-  --wait --timeout 8m
+# --- Sealed-Secrets Master Key ---
+echo "[4/5] Sealed-Secrets Master Key anwenden..."
+if [[ -f "${REPO_ROOT}/cluster/sealed-secrets-master-key.yaml" ]]; then
+  kubectl apply -f "${REPO_ROOT}/cluster/sealed-secrets-master-key.yaml"
+  echo "      Key angewendet — Controller entschlüsselt SealedSecrets beim Start."
+else
+  echo "      WARNUNG: cluster/sealed-secrets-master-key.yaml nicht gefunden!"
+  echo "               SealedSecrets können nicht entschlüsselt werden."
+  echo "               Key aus Backup wiederherstellen und erneut ausführen."
+fi
 
-# --- Root App-of-Apps ---
-echo "[5/5] Root App-of-Apps anwenden (GitOps übernimmt ab hier)..."
-kubectl apply -f "${CLUSTER_DIR}/../kubernetes/bootstrap/root-app/application.yaml"
+# --- Flux Bootstrap ---
+echo "[5/5] Flux Bootstrap (Flux übernimmt ab hier alles weitere)..."
+flux bootstrap github \
+  --owner=Berndinox \
+  --repository=k8s-homelab-gitops-v2 \
+  --branch=main \
+  --path=flux-system \
+  --personal
 
 # --- Ergebnis ---
 echo ""
 echo "=== Bootstrap abgeschlossen ==="
 echo ""
-echo "ArgoCD Admin-Passwort:"
-kubectl -n argocd get secret argocd-initial-admin-secret \
-  -o jsonpath='{.data.password}' | base64 -d
+echo "Flux Status:"
+flux get all -A
 echo ""
-echo ""
-echo "ArgoCD LoadBalancer-IP (kann kurz dauern):"
-kubectl -n argocd get svc argocd-server -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || \
-  echo "  (noch nicht vergeben — kubectl -n argocd get svc argocd-server)"
-echo ""
-echo "ArgoCD Apps:"
-kubectl -n argocd get applications 2>/dev/null || echo "  (ArgoCD startet noch)"
+echo "Nächste Schritte:"
+echo "  flux get kustomizations -A   # Reconciliation-Status"
+echo "  flux get helmreleases -A     # HelmRelease-Status"
+echo "  kubectl get nodes            # Node-Status"

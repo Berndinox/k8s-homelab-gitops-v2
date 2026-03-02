@@ -144,18 +144,18 @@ kubectl get nodes   # alle 3 Nodes: NotReady (noch kein CNI — normal)
 
 ---
 
-## 6. + 7. Cilium + ArgoCD installieren (Bootstrap-Script)
+## 6. + 7. Cilium + Flux installieren (Bootstrap-Script)
 
-> **Kurzform:** `bash scripts/bootstrap.sh` — installiert Cilium, ArgoCD und wendet die Root-App an.
-> Voraussetzung: `KUBECONFIG` gesetzt (ggf. kubeconfig-mgmt verwenden, siehe Hinweis unten).
+> **Kurzform:** `bash cluster/scripts/bootstrap.sh` — installiert Cilium, Multus, wendet den Sealed-Secrets-Key an und bootet Flux.
+> Voraussetzungen: `KUBECONFIG` + `GITHUB_TOKEN` gesetzt, `flux` CLI installiert.
 
 ```bash
-cd cluster/
 # MGMT-IP verwenden falls VIP (10.0.100.10) nicht erreichbar vom Bootstrap-Rechner:
-sed 's|10.0.100.10|10.0.200.13|g' clusterconfig/kubeconfig > clusterconfig/kubeconfig-mgmt
-export KUBECONFIG=$(pwd)/clusterconfig/kubeconfig-mgmt
+sed 's|10.0.100.10|10.0.200.13|g' cluster/clusterconfig/kubeconfig > cluster/clusterconfig/kubeconfig-mgmt
+export KUBECONFIG=$(pwd)/cluster/clusterconfig/kubeconfig-mgmt
+export GITHUB_TOKEN=<github-personal-access-token>
 
-bash scripts/bootstrap.sh
+bash cluster/scripts/bootstrap.sh
 ```
 
 ---
@@ -253,28 +253,25 @@ kubectl taint nodes m920x-03 node-role.kubernetes.io/control-plane:NoSchedule-
 
 ---
 
-## 7. ArgoCD installieren
+## 7. Flux Bootstrap
 
 ```bash
-helm repo add argo https://argoproj.github.io/argo-helm
-helm repo update argo
+# flux CLI installieren (einmalig):
+#   macOS:   brew install fluxcd/tap/flux
+#   Windows: winget install fluxcd.flux
 
-kubectl create namespace argocd
+export GITHUB_TOKEN=<github-personal-access-token>
 
-helm upgrade --install argocd argo/argo-cd \
-  --version 9.4.4 \
-  --namespace argocd \
-  --set server.insecure=true \
-  --set server.service.type=LoadBalancer \
-  --set configs.cm."application\.resourceTrackingMethod"=annotation \
-  --wait --timeout 5m
+flux bootstrap github \
+  --owner=Berndinox \
+  --repository=k8s-homelab-gitops-v2 \
+  --branch=main \
+  --path=flux-system \
+  --personal
 
-# Root App-of-Apps anwenden (GitOps übernimmt ab hier)
-kubectl apply -f ../kubernetes/bootstrap/root-app/application.yaml
-
-# Admin-Passwort
-kubectl -n argocd get secret argocd-initial-admin-secret \
-  -o jsonpath='{.data.password}' | base64 -d
+# Flux reconciled jetzt alles weitere automatisch (Cilium HelmRelease, Longhorn, etc.)
+flux get kustomizations -A
+flux get helmreleases -A
 ```
 
 ---
@@ -346,6 +343,6 @@ talosctl --talosconfig clusterconfig/talosconfig \
 # Cilium-Status
 kubectl -n kube-system exec -it ds/cilium -- cilium status
 
-# ArgoCD Apps
-kubectl -n argocd get applications
+# Flux Status
+flux get all -A
 ```

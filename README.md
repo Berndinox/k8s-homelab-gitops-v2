@@ -11,7 +11,7 @@ GitOps-getriebenes Kubernetes Homelab auf 3x Lenovo M920x.
 | Longhorn     | Distributed Block Storage      |
 | KubeVirt     | VM-Workloads auf Kubernetes    |
 | Multus       | Multi-NIC / VLAN-Zugriff       |
-| ArgoCD       | GitOps / Apps-of-Apps          |
+| Flux CD      | GitOps / HelmReleases          |
 | cert-manager | TLS-Zertifikate                |
 
 ## Cluster
@@ -31,13 +31,14 @@ Alle Befehle und Schritte: [cluster/COMMANDS.md](cluster/COMMANDS.md)
 3. talhelper genconfig
 4. talosctl apply-config  (pro Host möglich)
 5. talosctl bootstrap
-6. helm install cilium
-7. helm install argocd → ArgoCD übernimmt alles weitere
+6. helm template cilium | kubectl apply (MTU-Workaround)
+7. flux bootstrap github → Flux übernimmt alles weitere
 ```
 
 ## Repo-Struktur
 
 ```text
 cluster/     Talos-Config + Bootstrap-Befehle
-kubernetes/  ArgoCD Manifeste (Apps-of-Apps)
+flux-system/ Flux-Controller-Manifeste (gotk-components, gotk-sync)
+kubernetes/  Flux Kustomizations + HelmReleases
 ```
