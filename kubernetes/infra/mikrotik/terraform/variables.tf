@@ -47,18 +47,19 @@ variable "gw_mgmt"    { default = "10.0.200.1/24" }
 # ── Port assignments ──────────────────────────────────────────────────────────
 # CRS310-8G-2S+IN layout:
 #   ether1       = WAN uplink to ISP modem (untagged VLAN 5)
+#   ether2-5     = MGMT access ports (untagged VLAN 200) — multiple management devices
 #   ether6       = WiFi Guest AP access port (untagged VLAN 30)
 #   ether7       = WiFi Secure AP access port (untagged VLAN 60)
 #   ether8       = MGMT access port (untagged VLAN 200)
-#   sfp-sfpplus1 = LACP bond slave → bonding10 → L2 downstream switch → K8s nodes
-#   sfp-sfpplus2 = LACP bond slave → bonding10
+#   sfp-sfpplus1 = LACP bond slave → bonding1 → L2 downstream switch → K8s nodes
+#   sfp-sfpplus2 = LACP bond slave → bonding1
 variable "port_wan"         { default = "ether1" }
+variable "port_mgmt_ports"  { default = ["ether2", "ether3", "ether4", "ether5", "ether8"] }
 variable "port_ap_wifi"     { default = "ether6" }
 variable "port_ap_wifisec"  { default = "ether7" }
-variable "port_mgmt_access" { default = "ether8" }
 variable "port_trunk_1"     { default = "sfp-sfpplus1" }
 variable "port_trunk_2"     { default = "sfp-sfpplus2" }
-variable "bond_name"        { default = "bonding10" }
+variable "bond_name"        { default = "bonding1" }
 variable "bridge_name"      { default = "bridge" }
 
 # ── BGP ───────────────────────────────────────────────────────────────────────

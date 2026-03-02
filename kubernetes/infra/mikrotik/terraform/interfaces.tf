@@ -27,10 +27,11 @@ resource "routeros_interface_bridge_port" "wan" {
   comment     = "WAN uplink (ISP modem) — untagged VLAN ${var.vlan_wan}"
 }
 
-# MGMT access port — untagged VLAN 200
+# MGMT access ports — ether2/3/4/5/8, alle untagged VLAN 200
 resource "routeros_interface_bridge_port" "mgmt_access" {
+  for_each    = toset(var.port_mgmt_ports)
   bridge      = routeros_interface_bridge.main.name
-  interface   = var.port_mgmt_access
+  interface   = each.value
   pvid        = var.vlan_mgmt
   frame_types = "admit-only-untagged-and-priority-tagged"
   hw          = true
@@ -89,7 +90,8 @@ resource "routeros_interface_bridge_vlan" "mgmt" {
   bridge     = routeros_interface_bridge.main.name
   vlan_ids   = [var.vlan_mgmt]
   tagged     = [var.bridge_name, routeros_interface_bonding.trunk_bond.name]
-  comment    = "MGMT VLAN ${var.vlan_mgmt} — bond trunk + bridge CPU (ether8 untagged via pvid)"
+  untagged   = var.port_mgmt_ports
+  comment    = "MGMT VLAN ${var.vlan_mgmt} — bond trunk + bridge CPU; ether2-5+8 untagged access"
   depends_on = [routeros_interface_bonding.trunk_bond]
 }
 
