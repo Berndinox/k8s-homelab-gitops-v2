@@ -5,7 +5,7 @@ metadata:
   namespace: infra
 spec:
   interval: 10m
-  # approvePlan: auto   # NACH erstem Plan-Review aktivieren
+  approvePlan: auto
   path: ./kubernetes/infra/mikrotik/terraform
   sourceRef:
     kind: GitRepository
