@@ -1,11 +1,5 @@
 # ── NAT ───────────────────────────────────────────────────────────────────────
-
-resource "routeros_ip_firewall_nat" "masquerade" {
-  chain         = "srcnat"
-  out_interface = "${var.bridge_name}.${var.vlan_wan}"
-  action        = "masquerade"
-  comment       = "Masquerade all traffic to WAN"
-}
+# NAT masquerade entfernt — VyOS VM auf VLAN 50 übernimmt NAT am WAN.
 
 # ── RFC1918 Address-List ──────────────────────────────────────────────────────
 # Shared by WiFi Guest + Client block rules.
@@ -182,9 +176,9 @@ resource "routeros_ip_firewall_filter" "fwd_wifi_block_private" {
 resource "routeros_ip_firewall_filter" "fwd_wifi_internet" {
   chain         = "forward"
   in_interface  = "${var.bridge_name}.${var.vlan_wifi}"
-  out_interface = "${var.bridge_name}.${var.vlan_wan}"
+  out_interface = "${var.bridge_name}.${var.vlan_server}"
   action        = "accept"
-  comment       = "WiFi Guest → Internet"
+  comment       = "WiFi Guest → Internet (via VyOS on Server VLAN)"
   place_before  = routeros_ip_firewall_filter.fwd_wifisec_cluster.id
 }
 
@@ -201,9 +195,9 @@ resource "routeros_ip_firewall_filter" "fwd_wifisec_cluster" {
 resource "routeros_ip_firewall_filter" "fwd_wifisec_internet" {
   chain         = "forward"
   in_interface  = "${var.bridge_name}.${var.vlan_wifisec}"
-  out_interface = "${var.bridge_name}.${var.vlan_wan}"
+  out_interface = "${var.bridge_name}.${var.vlan_server}"
   action        = "accept"
-  comment       = "WiFi Secure → Internet"
+  comment       = "WiFi Secure → Internet (via VyOS on Server VLAN)"
   place_before  = routeros_ip_firewall_filter.fwd_client_block_private.id
 }
 
@@ -221,9 +215,9 @@ resource "routeros_ip_firewall_filter" "fwd_client_block_private" {
 resource "routeros_ip_firewall_filter" "fwd_client_internet" {
   chain         = "forward"
   in_interface  = "${var.bridge_name}.${var.vlan_client}"
-  out_interface = "${var.bridge_name}.${var.vlan_wan}"
+  out_interface = "${var.bridge_name}.${var.vlan_server}"
   action        = "accept"
-  comment       = "Client → Internet"
+  comment       = "Client → Internet (via VyOS on Server VLAN)"
   place_before  = routeros_ip_firewall_filter.fwd_cluster_internet.id
 }
 
@@ -231,9 +225,9 @@ resource "routeros_ip_firewall_filter" "fwd_client_internet" {
 resource "routeros_ip_firewall_filter" "fwd_cluster_internet" {
   chain         = "forward"
   in_interface  = "${var.bridge_name}.${var.vlan_cluster}"
-  out_interface = "${var.bridge_name}.${var.vlan_wan}"
+  out_interface = "${var.bridge_name}.${var.vlan_server}"
   action        = "accept"
-  comment       = "Cluster → Internet"
+  comment       = "Cluster → Internet (via VyOS on Server VLAN)"
   place_before  = routeros_ip_firewall_filter.fwd_mgmt_all.id
 }
 
@@ -259,9 +253,9 @@ resource "routeros_ip_firewall_filter" "fwd_dmz_cluster" {
 resource "routeros_ip_firewall_filter" "fwd_dmz_internet" {
   chain         = "forward"
   in_interface  = "${var.bridge_name}.${var.vlan_dmz}"
-  out_interface = "${var.bridge_name}.${var.vlan_wan}"
+  out_interface = "${var.bridge_name}.${var.vlan_server}"
   action        = "accept"
-  comment       = "DMZ → Internet"
+  comment       = "DMZ → Internet (via VyOS on Server VLAN)"
   place_before  = routeros_ip_firewall_filter.fwd_server_cluster.id
 }
 
@@ -278,9 +272,9 @@ resource "routeros_ip_firewall_filter" "fwd_server_cluster" {
 resource "routeros_ip_firewall_filter" "fwd_server_internet" {
   chain         = "forward"
   in_interface  = "${var.bridge_name}.${var.vlan_server}"
-  out_interface = "${var.bridge_name}.${var.vlan_wan}"
+  out_interface = "${var.bridge_name}.${var.vlan_server}"
   action        = "accept"
-  comment       = "Server → Internet"
+  comment       = "Server → Internet (hairpin via VyOS on same VLAN)"
   place_before  = routeros_ip_firewall_filter.fwd_drop_all.id
 }
 

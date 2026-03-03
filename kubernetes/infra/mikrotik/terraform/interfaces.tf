@@ -186,13 +186,14 @@ resource "routeros_ip_address" "wifisec_gw" {
   depends_on = [routeros_interface_bridge_vlan.wifisec]
 }
 
-# WAN — DHCP client on bridge.5
-resource "routeros_ip_dhcp_client" "wan" {
-  interface         = "${var.bridge_name}.${var.vlan_wan}"
-  add_default_route = true
-  use_peer_dns      = false
-  comment           = "WAN DHCP from ISP"
-  depends_on        = [routeros_interface_bridge_vlan.wan]
+# Default Route → VyOS (10.0.50.2) on Server VLAN
+# VyOS VM handles WAN (VLAN 5), NAT, Stateful FW, IDS, VPN.
+# MikroTik does L3 inter-VLAN routing only (ASIC wire-speed).
+resource "routeros_ip_route" "default_via_vyos" {
+  dst_address = "0.0.0.0/0"
+  gateway     = "10.0.50.2"
+  comment     = "Default route via VyOS on Server VLAN"
+  depends_on  = [routeros_ip_address.server_gw]
 }
 
 # DNS — MikroTik als lokaler Resolver (Upstream: Quad9)
