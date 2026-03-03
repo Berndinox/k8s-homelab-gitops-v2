@@ -29,6 +29,8 @@ spec:
   values:
     ipam:
       mode: kubernetes
+    devices: "eno1 bond0.100 br50"
+    directRoutingDevice: bond0.100
     kubeProxyReplacement: true
     routingMode: native
     autoDirectNodeRoutes: true

@@ -28,6 +28,11 @@ machine:
   #         - rshared
   #         - rw
 
+  kubelet:
+    nodeIP:
+      validSubnets:
+        - 10.0.100.0/24    # K8s InternalIP auf VLAN 100 — Pod-to-Pod, Longhorn, Cluster-intern
+
   sysctls:
     fs.inotify.max_user_watches: "1048576"
     fs.inotify.max_user_instances: "8192"
