@@ -1,3 +1,11 @@
+# ── L3 Hardware Offloading ────────────────────────────────────────────────────
+# CRS310 (98DX226S): L3 inter-VLAN routing via ASIC at wire-speed.
+# MikroTik handles all inter-VLAN routing; only internet goes via VyOS.
+resource "routeros_interface_ethernet_switch" "main" {
+  name             = "switch1"
+  l3_hw_offloading = true
+}
+
 # ── Bridge (VLAN-aware) ───────────────────────────────────────────────────────
 resource "routeros_interface_bridge" "main" {
   name           = var.bridge_name
