@@ -5,3 +5,4 @@ resources:
   - sealed-secrets-ks.yaml
   - tofu-controller-ks.yaml
   - mikrotik-ks.yaml
+  - vyos-ks.yaml

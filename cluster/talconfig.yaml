@@ -42,6 +42,8 @@ nodes:
               - 10.0.100.11/24
             vip:
               ip: 10.0.100.10
+          - vlanId: 5     # WAN — kein IP, linux-bridge NAD für VyOS VM
+            dhcp: false
           - vlanId: 10    # DMZ — kein IP, linux-bridge NAD für KubeVirt VMs
             dhcp: false
           - vlanId: 30    # WiFi Guest — kein IP, linux-bridge NAD für KubeVirt VMs
@@ -52,6 +54,13 @@ nodes:
             dhcp: false
           - vlanId: 200   # MGMT — kein IP, Multus macvlan NAD für tf-runner
             dhcp: false
+      - interface: br5
+        dhcp: false
+        bridge:
+          stp:
+            enabled: false
+          interfaces:
+            - bond0.5
       - interface: br50
         dhcp: false
         bridge:
@@ -91,6 +100,8 @@ nodes:
               - 10.0.100.12/24
             vip:
               ip: 10.0.100.10
+          - vlanId: 5     # WAN — kein IP, linux-bridge NAD für VyOS VM
+            dhcp: false
           - vlanId: 10
             dhcp: false
           - vlanId: 30
@@ -101,6 +112,13 @@ nodes:
             dhcp: false
           - vlanId: 200   # MGMT — kein IP, Multus macvlan NAD für tf-runner
             dhcp: false
+      - interface: br5
+        dhcp: false
+        bridge:
+          stp:
+            enabled: false
+          interfaces:
+            - bond0.5
       - interface: br50
         dhcp: false
         bridge:
@@ -140,6 +158,8 @@ nodes:
               - 10.0.100.13/24
             vip:
               ip: 10.0.100.10
+          - vlanId: 5     # WAN — kein IP, linux-bridge NAD für VyOS VM
+            dhcp: false
           - vlanId: 10
             dhcp: false
           - vlanId: 30
@@ -150,6 +170,13 @@ nodes:
             dhcp: false
           - vlanId: 200   # MGMT — kein IP, Multus macvlan NAD für tf-runner
             dhcp: false
+      - interface: br5
+        dhcp: false
+        bridge:
+          stp:
+            enabled: false
+          interfaces:
+            - bond0.5
       - interface: br50
         dhcp: false
         bridge:

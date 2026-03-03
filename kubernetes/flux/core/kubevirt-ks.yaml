@@ -1,0 +1,15 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: core-kubevirt
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 1m
+  timeout: 10m
+  prune: false
+  path: ./kubernetes/core/kubevirt
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  wait: true

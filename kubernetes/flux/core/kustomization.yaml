@@ -6,3 +6,4 @@ resources:
   - longhorn-prereqs-ks.yaml
   - longhorn-ks.yaml
   - multus-ks.yaml
+  - kubevirt-ks.yaml
