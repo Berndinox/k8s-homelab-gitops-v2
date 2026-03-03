@@ -1,12 +1,8 @@
-# ── BGP — MikroTik (AS 65000) ↔ Cilium (AS 65100) + VyOS (AS 65200) ─────────
+# ── BGP — MikroTik (AS 65000) ↔ Cilium (AS 65100) ──────────────────────────
 #
-# MikroTik AS 65000 peers with:
-#   - Each Cilium node on VLAN 100 (learns Pod CIDRs + LB Service IPs)
-#   - VyOS on VLAN 50 (redistributes Cilium routes → no double-NAT)
-#
-# Flow:  Cilium → MikroTik → VyOS
-#        Pod CIDRs + LB IPs propagated so VyOS knows return routes.
-#        VyOS only NATs at WAN, not for pod traffic.
+# MikroTik peers with each Cilium node on VLAN 100.
+# Learns Pod CIDRs + LB Service IPs → routes them to internal VLANs.
+# VyOS uses static route (10.0.0.0/8 → MikroTik) — no BGP needed.
 #
 # After applying:
 #   /routing/bgp/session print         — check session state
@@ -36,30 +32,6 @@ resource "routeros_routing_bgp_connection" "cilium" {
   comment = "Cilium BGP peer — ${each.value.name} (${each.value.ip})"
 }
 
-# ── VyOS Peer (VLAN 50) ─────────────────────────────────────────────────────
-# VyOS learns Pod CIDRs + LB IPs → can route return traffic without NAT.
-# VyOS advertises nothing to MikroTik (MikroTik has its own default route).
-
-resource "routeros_routing_bgp_connection" "vyos" {
-  name           = "vyos"
-  as             = var.bgp_local_as
-  router_id      = var.bgp_router_id
-  remote_as      = var.bgp_vyos_as
-  remote_address = "10.0.50.2"
-
-  address_families = "ip"
-
-  input {
-    filter = "reject-all"
-  }
-
-  output {
-    filter = "advertise-cilium-routes"
-  }
-
-  comment = "VyOS BGP peer — redistribute Cilium pod/service routes"
-}
-
 # ── Routing Filters ───────────────────────────────────────────────────────────
 
 # accept-private: nur RFC1918-Routen akzeptieren (Pod-CIDRs, LB-IPs)
@@ -77,18 +49,5 @@ resource "routeros_routing_filter_rule" "accept_private_reject" {
 
 resource "routeros_routing_filter_rule" "reject_all" {
   chain = "reject-all"
-  rule  = "if (dst in 0.0.0.0/0) { reject }"
-}
-
-# advertise-cilium-routes: Forward BGP-learned RFC1918 routes to VyOS.
-# Matches routes learned from Cilium peers (Pod CIDRs + LB Service IPs).
-# Only private ranges — never leak a default route to VyOS.
-resource "routeros_routing_filter_rule" "advertise_cilium_accept" {
-  chain = "advertise-cilium-routes"
-  rule  = "if (dst in 10.0.0.0/8 && protocol bgp) { accept }"
-}
-
-resource "routeros_routing_filter_rule" "advertise_cilium_reject" {
-  chain = "advertise-cilium-routes"
   rule  = "if (dst in 0.0.0.0/0) { reject }"
 }

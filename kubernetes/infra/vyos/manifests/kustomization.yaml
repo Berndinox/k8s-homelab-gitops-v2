@@ -3,3 +3,5 @@ kind: Kustomization
 resources:
   - vlan5-wan-nad.yaml
   - vlan50-transit-nad.yaml
+  - vm-router.yaml
+  - cloudinit-secret.yaml

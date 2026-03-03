@@ -38,7 +38,7 @@ spec:
     ipv6:
       enabled: false
     bpf:
-      masquerade: true
+      masquerade: false
       hostLegacyRouting: false
       tproxy: true
     loadBalancer:

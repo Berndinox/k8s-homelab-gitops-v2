@@ -198,17 +198,6 @@ resource "routeros_ip_firewall_filter" "input_bgp_cluster" {
   dst_port     = "179"
   action       = "accept"
   comment      = "Allow BGP from Cluster VLAN (Cilium peering)"
-  place_before = routeros_ip_firewall_filter.input_bgp_vyos.id
-}
-
-# BGP TCP 179 — from Server VLAN (VyOS peering)
-resource "routeros_ip_firewall_filter" "input_bgp_vyos" {
-  chain        = "input"
-  in_interface = "${var.bridge_name}.${var.vlan_server}"
-  protocol     = "tcp"
-  dst_port     = "179"
-  action       = "accept"
-  comment      = "Allow BGP from Server VLAN (VyOS peering)"
   place_before = routeros_ip_firewall_filter.input_drop_all.id
 }
 

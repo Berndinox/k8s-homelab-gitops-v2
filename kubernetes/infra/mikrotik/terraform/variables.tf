@@ -65,7 +65,6 @@ variable "bridge_name"      { default = "bridge" }
 # ── BGP ───────────────────────────────────────────────────────────────────────
 variable "bgp_local_as"  { default = 65000 }
 variable "bgp_peer_as"   { default = 65100 }
-variable "bgp_vyos_as"   { default = 65200 }
 variable "bgp_router_id" { default = "10.0.200.1" }
 variable "bgp_peers" {
   description = "Cilium node IPs on VLAN 100"
