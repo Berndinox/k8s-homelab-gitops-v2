@@ -1,7 +1,7 @@
 variable "mikrotik_host" {
   description = "MikroTik management IP (VLAN 200)"
   type        = string
-  default     = "10.0.200.1"
+  default     = "10.0.200.254"
 }
 
 variable "mikrotik_user" {
@@ -26,23 +26,14 @@ variable "vlan_wifisec" { default = 60 }
 variable "vlan_cluster" { default = 100 }
 variable "vlan_mgmt"    { default = 200 }
 
-# ── Subnets ───────────────────────────────────────────────────────────────────
-variable "subnet_dmz"     { default = "10.0.10.0/24" }
-variable "subnet_wifi"    { default = "10.0.30.0/24" }
-variable "subnet_client"  { default = "10.0.40.0/24" }
-variable "subnet_server"  { default = "10.0.50.0/24" }
-variable "subnet_wifisec" { default = "10.0.60.0/24" }
+# ── Subnets (only VLANs with DHCP on MikroTik) ────────────────────────────────
 variable "subnet_cluster" { default = "10.0.100.0/24" }
 variable "subnet_mgmt"    { default = "10.0.200.0/24" }
 
-# ── Gateway IPs (MikroTik = .1 on each subnet) ───────────────────────────────
-variable "gw_dmz"     { default = "10.0.10.1/24" }
-variable "gw_wifi"    { default = "10.0.30.1/24" }
-variable "gw_client"  { default = "10.0.40.1/24" }
-variable "gw_server"  { default = "10.0.50.1/24" }
-variable "gw_wifisec" { default = "10.0.60.1/24" }
+# ── MikroTik own IPs (DHCP/DNS/NTP service only — not gateways) ──────────────
+# Gateways will be VyOS IPs, configured in next step.
 variable "gw_cluster" { default = "10.0.100.1/24" }
-variable "gw_mgmt"    { default = "10.0.200.1/24" }
+variable "gw_mgmt"    { default = "10.0.200.254/24" }
 
 # ── Port assignments ──────────────────────────────────────────────────────────
 # CRS310-8G-2S+IN layout:
@@ -61,19 +52,6 @@ variable "port_trunk_1"     { default = "sfp-sfpplus1" }
 variable "port_trunk_2"     { default = "sfp-sfpplus2" }
 variable "bond_name"        { default = "bonding1" }
 variable "bridge_name"      { default = "bridge" }
-
-# ── BGP ───────────────────────────────────────────────────────────────────────
-variable "bgp_local_as"  { default = 65000 }
-variable "bgp_peer_as"   { default = 65100 }
-variable "bgp_router_id" { default = "10.0.200.1" }
-variable "bgp_peers" {
-  description = "Cilium node IPs on VLAN 100"
-  default = [
-    { name = "node-01", ip = "10.0.100.11" },
-    { name = "node-02", ip = "10.0.100.12" },
-    { name = "node-03", ip = "10.0.100.13" },
-  ]
-}
 
 # ── DHCP ──────────────────────────────────────────────────────────────────────
 variable "dhcp_lease_time" { default = "10m" }
