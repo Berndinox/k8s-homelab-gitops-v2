@@ -5,7 +5,7 @@ metadata:
   namespace: infra
 spec:
   interval: 10m
-  suspended: true   # Remove to allow apply — currently in review/staging
+  suspend: true   # Remove to allow apply — currently in review/staging
   approvePlan: auto
   path: ./kubernetes/infra/mikrotik/terraform
   sourceRef:
