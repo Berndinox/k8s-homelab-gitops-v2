@@ -32,7 +32,7 @@ variable "subnet_mgmt"    { default = "10.0.200.0/24" }
 
 # ── MikroTik own IPs (DHCP/DNS/NTP service only — not gateways) ──────────────
 # Gateways will be VyOS IPs, configured in next step.
-variable "gw_cluster" { default = "10.0.100.1/24" }
+variable "gw_cluster" { default = "10.0.100.254/24" }
 variable "gw_mgmt"    { default = "10.0.200.254/24" }
 
 # ── Port assignments ──────────────────────────────────────────────────────────

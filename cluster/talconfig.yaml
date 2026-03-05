@@ -42,17 +42,19 @@ nodes:
               - 10.0.100.11/24
             vip:
               ip: 10.0.100.10
-          - vlanId: 5     # WAN — kein IP, linux-bridge NAD für VyOS VM
+          - vlanId: 5     # WAN — kein IP, macvtap NAD für VyOS
             dhcp: false
-          - vlanId: 10    # DMZ — kein IP, linux-bridge NAD für KubeVirt VMs
+          - vlanId: 10    # DMZ — kein IP, macvtap NAD für VyOS
             dhcp: false
-          - vlanId: 30    # WiFi Guest — kein IP, linux-bridge NAD für KubeVirt VMs
+          - vlanId: 30    # WiFi Guest — kein IP, macvtap NAD für VyOS
+            dhcp: false
+          - vlanId: 40    # Client — kein IP, macvtap NAD für VyOS
             dhcp: false
           - vlanId: 50    # Server — Uplink für br50 (kein IP direkt)
             dhcp: false
-          - vlanId: 60    # WiFi Secure — kein IP, linux-bridge NAD für KubeVirt VMs
+          - vlanId: 60    # WiFi Secure — kein IP, macvtap NAD für VyOS
             dhcp: false
-          - vlanId: 200   # MGMT — kein IP, Multus macvlan NAD für tf-runner
+          - vlanId: 200   # MGMT — kein IP, macvtap NAD für VyOS + macvlan für tf-runner
             dhcp: false
       - interface: br5
         dhcp: false
@@ -100,17 +102,19 @@ nodes:
               - 10.0.100.12/24
             vip:
               ip: 10.0.100.10
-          - vlanId: 5     # WAN — kein IP, linux-bridge NAD für VyOS VM
+          - vlanId: 5     # WAN — kein IP, macvtap NAD für VyOS
             dhcp: false
-          - vlanId: 10
+          - vlanId: 10    # DMZ — kein IP, macvtap NAD für VyOS
             dhcp: false
-          - vlanId: 30
+          - vlanId: 30    # WiFi Guest — kein IP, macvtap NAD für VyOS
+            dhcp: false
+          - vlanId: 40    # Client — kein IP, macvtap NAD für VyOS
             dhcp: false
           - vlanId: 50    # Server — Uplink für br50 (kein IP direkt)
             dhcp: false
-          - vlanId: 60
+          - vlanId: 60    # WiFi Secure — kein IP, macvtap NAD für VyOS
             dhcp: false
-          - vlanId: 200   # MGMT — kein IP, Multus macvlan NAD für tf-runner
+          - vlanId: 200   # MGMT — kein IP, macvtap NAD für VyOS + macvlan für tf-runner
             dhcp: false
       - interface: br5
         dhcp: false
@@ -158,17 +162,19 @@ nodes:
               - 10.0.100.13/24
             vip:
               ip: 10.0.100.10
-          - vlanId: 5     # WAN — kein IP, linux-bridge NAD für VyOS VM
+          - vlanId: 5     # WAN — kein IP, macvtap NAD für VyOS
             dhcp: false
-          - vlanId: 10
+          - vlanId: 10    # DMZ — kein IP, macvtap NAD für VyOS
             dhcp: false
-          - vlanId: 30
+          - vlanId: 30    # WiFi Guest — kein IP, macvtap NAD für VyOS
+            dhcp: false
+          - vlanId: 40    # Client — kein IP, macvtap NAD für VyOS
             dhcp: false
           - vlanId: 50    # Server — Uplink für br50 (kein IP direkt)
             dhcp: false
-          - vlanId: 60
+          - vlanId: 60    # WiFi Secure — kein IP, macvtap NAD für VyOS
             dhcp: false
-          - vlanId: 200   # MGMT — kein IP, Multus macvlan NAD für tf-runner
+          - vlanId: 200   # MGMT — kein IP, macvtap NAD für VyOS + macvlan für tf-runner
             dhcp: false
       - interface: br5
         dhcp: false

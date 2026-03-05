@@ -7,3 +7,4 @@ resources:
   - longhorn-ks.yaml
   - multus-ks.yaml
   - kubevirt-ks.yaml
+  - cnao-ks.yaml

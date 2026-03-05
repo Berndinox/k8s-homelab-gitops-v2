@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: macvtap-deviceplugin-config
+  namespace: kubevirt
+data:
+  DP_MACVTAP_CONF: |
+    [
+      {"name":"vlan5-wan",      "lowerDevice":"bond0.5",   "mode":"bridge","capacity":2},
+      {"name":"vlan10-dmz",     "lowerDevice":"bond0.10",  "mode":"bridge","capacity":2},
+      {"name":"vlan30-wifi",    "lowerDevice":"bond0.30",  "mode":"bridge","capacity":2},
+      {"name":"vlan40-client",  "lowerDevice":"bond0.40",  "mode":"bridge","capacity":2},
+      {"name":"vlan50-server",  "lowerDevice":"br50",      "mode":"bridge","capacity":2},
+      {"name":"vlan60-wifisec", "lowerDevice":"bond0.60",  "mode":"bridge","capacity":2},
+      {"name":"vlan100-cluster","lowerDevice":"bond0.100", "mode":"bridge","capacity":2},
+      {"name":"vlan200-mgmt",   "lowerDevice":"bond0.200", "mode":"bridge","capacity":2}
+    ]

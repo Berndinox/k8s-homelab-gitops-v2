@@ -1,0 +1,107 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: vyos-01
+  namespace: infra
+  labels:
+    app: vyos
+spec:
+  running: false
+  template:
+    metadata:
+      labels:
+        app: vyos
+      annotations:
+        k8s.v1.cni.cncf.io/networks: |
+          [
+            {"name":"vlan5-wan",       "namespace":"infra"},
+            {"name":"vlan10-dmz",      "namespace":"infra"},
+            {"name":"vlan30-wifi",     "namespace":"infra"},
+            {"name":"vlan40-client",   "namespace":"infra"},
+            {"name":"vlan50-server",   "namespace":"infra"},
+            {"name":"vlan60-wifisec",  "namespace":"infra"},
+            {"name":"vlan100-cluster", "namespace":"infra"},
+            {"name":"vlan200-mgmt",    "namespace":"infra"}
+          ]
+    spec:
+      domain:
+        cpu:
+          cores: 4
+          dedicatedCpuPlacement: true
+          isolateEmulatorThread: true
+        memory:
+          guest: 2Gi
+        devices:
+          autoattachPodInterface: false
+          interfaces:
+            - name: wan
+              binding:
+                name: macvtap
+            - name: dmz
+              binding:
+                name: macvtap
+            - name: wifi
+              binding:
+                name: macvtap
+            - name: client
+              binding:
+                name: macvtap
+            - name: server
+              binding:
+                name: macvtap
+            - name: wifisec
+              binding:
+                name: macvtap
+            - name: cluster
+              binding:
+                name: macvtap
+            - name: mgmt
+              binding:
+                name: macvtap
+          disks:
+            - name: rootdisk
+              disk:
+                bus: virtio
+            - name: cloudinit
+              disk:
+                bus: virtio
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: vyos
+              topologyKey: kubernetes.io/hostname
+      networks:
+        - name: wan
+          multus:
+            networkName: infra/vlan5-wan
+        - name: dmz
+          multus:
+            networkName: infra/vlan10-dmz
+        - name: wifi
+          multus:
+            networkName: infra/vlan30-wifi
+        - name: client
+          multus:
+            networkName: infra/vlan40-client
+        - name: server
+          multus:
+            networkName: infra/vlan50-server
+        - name: wifisec
+          multus:
+            networkName: infra/vlan60-wifisec
+        - name: cluster
+          multus:
+            networkName: infra/vlan100-cluster
+        - name: mgmt
+          multus:
+            networkName: infra/vlan200-mgmt
+      volumes:
+        - name: rootdisk
+          containerDisk:
+            image: ghcr.io/berndinox/vyos:1.4.x
+        - name: cloudinit
+          cloudInitNoCloud:
+            secretRef:
+              name: cloudinit-vyos-01

@@ -1,7 +1,18 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  # macvtap NADs (8x — one per VLAN)
   - vlan5-wan-nad.yaml
-  - vlan50-transit-nad.yaml
-  - vm-router.yaml
-  - cloudinit-secret.yaml
+  - vlan10-dmz-nad.yaml
+  - vlan30-wifi-nad.yaml
+  - vlan40-client-nad.yaml
+  - vlan50-server-nad.yaml
+  - vlan60-wifisec-nad.yaml
+  - vlan100-cluster-nad.yaml
+  - vlan200-mgmt-nad.yaml
+  # Cloud-Init secrets
+  - cloudinit-vyos01-secret.yaml
+  - cloudinit-vyos02-secret.yaml
+  # VyOS HA VMs
+  - vm-vyos-01.yaml
+  - vm-vyos-02.yaml
