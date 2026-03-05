@@ -21,10 +21,10 @@ resource "routeros_ip_dhcp_server" "cluster" {
 
 resource "routeros_ip_dhcp_server_network" "cluster" {
   address    = var.subnet_cluster
-  gateway    = "10.0.100.1"          # Placeholder → will be VyOS IP on VLAN 100
-  dns_server = ["10.0.100.1"]        # MikroTik for now (VyOS later)
-  ntp_server = ["10.0.100.1"]        # MikroTik for now (VyOS later)
-  comment    = "Cluster network — gateway TBD (VyOS)"
+  gateway    = "10.0.100.1"          # VyOS VRRP VIP on Cluster VLAN
+  dns_server = ["10.0.100.254"]      # MikroTik — resilient (works without VyOS)
+  ntp_server = ["10.0.100.254"]      # MikroTik
+  comment    = "Cluster network — VyOS VIP .1 as gateway"
 }
 
 # ── MGMT VLAN 200 ─────────────────────────────────────────────────────────────
@@ -44,8 +44,8 @@ resource "routeros_ip_dhcp_server" "mgmt" {
 
 resource "routeros_ip_dhcp_server_network" "mgmt" {
   address    = var.subnet_mgmt
-  gateway    = "10.0.200.1"                    # Placeholder → will be VyOS IP on VLAN 200
-  dns_server = ["10.0.200.2", "10.0.200.3"]   # DNS servers in MGMT VLAN (Pi-hole etc.)
-  ntp_server = ["10.0.200.254"]                # MikroTik itself
-  comment    = "MGMT network — gateway TBD (VyOS)"
+  gateway    = "10.0.200.1"          # VyOS VRRP VIP on MGMT VLAN
+  dns_server = ["10.0.200.254"]      # MikroTik — resilient (works without VyOS)
+  ntp_server = ["10.0.200.254"]      # MikroTik
+  comment    = "MGMT network — VyOS VIP .1 as gateway"
 }

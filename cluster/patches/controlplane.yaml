@@ -8,12 +8,10 @@ cluster:
   # Single-Node: Pods auf Control-Plane erlauben (kein Worker Node)
   # Entfernt den node-role.kubernetes.io/control-plane:NoSchedule Taint dauerhaft
   allowSchedulingOnControlPlanes: true
-# VIP auf bond0.100 — talhelper überträgt VIP nicht in neues Netzwerk-Dokumentformat
+# VIP auf eno1 (MGMT VLAN 200) — Management-Plane getrennt von Cluster-Datenplane
 machine:
   network:
     interfaces:
-      - interface: bond0
-        vlans:
-          - vlanId: 100
-            vip:
-              ip: 10.0.100.10
+      - interface: eno1
+        vip:
+          ip: 10.0.200.10
