@@ -100,7 +100,7 @@ spec:
       volumes:
         - name: rootdisk
           containerDisk:
-            image: ghcr.io/berndinox/vyos:1.4.x
+            image: 10.0.100.11:30500/edge-router:2026.02
         - name: cloudinit
           cloudInitNoCloud:
             secretRef:

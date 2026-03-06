@@ -6,3 +6,4 @@ resources:
   - tofu-controller-ks.yaml
   - mikrotik-ks.yaml
   - vyos-ks.yaml
+  - registry-ks.yaml

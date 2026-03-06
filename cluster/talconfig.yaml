@@ -10,6 +10,7 @@ talosImageURL: factory.talos.dev/installer/36cd6536eaec8ba802be2d38974108359069c
 patches:
   - "@./patches/common.yaml"
   - "@./patches/longhorn-disk.yaml"
+  - "@./patches/registry.yaml"
 
 controlPlane:
   patches:
@@ -73,7 +74,8 @@ nodes:
     ipAddress: 10.0.200.12
     controlPlane: true
     installDiskSelector:
-      size: "<= 500GB"
+      type: nvme
+      size: "<= 700GB"
     networkInterfaces:
       - interface: eno1
         dhcp: false

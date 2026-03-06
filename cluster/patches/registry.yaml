@@ -1,0 +1,6 @@
+machine:
+  registries:
+    config:
+      "10.0.100.11:30500":
+        tls:
+          insecureSkipVerify: true
