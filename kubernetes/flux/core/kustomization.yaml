@@ -8,3 +8,4 @@ resources:
   - multus-ks.yaml
   - kubevirt-ks.yaml
   - cnao-ks.yaml
+  - monitoring-ks.yaml
