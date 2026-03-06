@@ -15,8 +15,12 @@ spec:
   install:
     crds: Create
     createNamespace: true
+    remediation:
+      retries: 5
   upgrade:
     crds: CreateReplace
+    remediation:
+      retries: 3
   values:
     # -- VMSingle (storage) --
     vmsingle:
