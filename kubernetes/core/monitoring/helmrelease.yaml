@@ -67,3 +67,5 @@ spec:
       enabled: true
     alertmanager:
       enabled: false
+    vmalert:
+      enabled: false
