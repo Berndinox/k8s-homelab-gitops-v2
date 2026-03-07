@@ -26,6 +26,8 @@ spec:
     vmsingle:
       spec:
         retentionPeriod: "14d"
+        extraArgs:
+          maxLabelsPerTimeseries: "60"
         storage:
           storageClassName: longhorn
           resources:
@@ -63,6 +65,14 @@ spec:
         - 10.0.200.11
         - 10.0.200.12
         - 10.0.200.13
+
+    # -- Drop KubeVirt CPU-feature labels from node scrapes --
+    kubelet:
+      vmScrape:
+        spec:
+          metricRelabelConfigs:
+            - action: labeldrop
+              regex: cpu_feature_node_kubevirt_io_.*
 
     # -- Components --
     prometheus-node-exporter:
