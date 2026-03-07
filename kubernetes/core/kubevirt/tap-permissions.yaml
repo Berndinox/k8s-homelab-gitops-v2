@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: tap-permissions
+  namespace: kubevirt
+  labels:
+    app: tap-permissions
+spec:
+  selector:
+    matchLabels:
+      app: tap-permissions
+  template:
+    metadata:
+      labels:
+        app: tap-permissions
+    spec:
+      hostPID: true
+      containers:
+        - name: tap-fix
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - |
+              while true; do
+                for dev in /dev/tap*; do
+                  [ -e "$dev" ] && chown 107:107 "$dev" && chmod 0660 "$dev"
+                done
+                sleep 2
+              done
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: dev
+              mountPath: /dev
+      volumes:
+        - name: dev
+          hostPath:
+            path: /dev
+      tolerations:
+        - operator: Exists

@@ -11,6 +11,7 @@ patches:
   - "@./patches/common.yaml"
   - "@./patches/longhorn-disk.yaml"
   - "@./patches/registry.yaml"
+  - "@./patches/udev.yaml"
 
 controlPlane:
   patches:

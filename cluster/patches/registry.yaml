@@ -1,6 +1,12 @@
 machine:
   registries:
-    config:
+    mirrors:
       "10.0.100.11:30500":
-        tls:
-          insecureSkipVerify: true
+        endpoints:
+          - http://10.0.100.11:30500
+      "10.0.100.12:30500":
+        endpoints:
+          - http://10.0.100.12:30500
+      "10.0.100.13:30500":
+        endpoints:
+          - http://10.0.100.13:30500
