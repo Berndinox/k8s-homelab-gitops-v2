@@ -4,4 +4,4 @@ metadata:
   name: cluster
 spec:
   macvtap:
-    devicePluginConfig: macvtap-deviceplugin-config
+    devicePluginConfig: macvtap-custom-config
