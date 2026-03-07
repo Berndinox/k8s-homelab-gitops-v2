@@ -27,7 +27,7 @@ spec:
       spec:
         retentionPeriod: "14d"
         extraArgs:
-          maxLabelsPerTimeseries: "60"
+          maxLabelsPerTimeseries: "200"
         storage:
           storageClassName: longhorn
           resources:
