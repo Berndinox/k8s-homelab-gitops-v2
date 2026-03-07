@@ -4,12 +4,12 @@ metadata:
   name: vlan40-client
   namespace: infra
   annotations:
-    k8s.v1.cni.cncf.io/resourceName: macvtap.network.kubevirt.io/vlan40-client
+    k8s.v1.cni.cncf.io/resourceName: macvtap.network.kubevirt.io/vlan40
 spec:
   config: |
     {
       "cniVersion": "0.3.1",
-      "name": "vlan40-client",
+      "name": "vlan40",
       "type": "macvtap",
       "mtu": 1500
     }

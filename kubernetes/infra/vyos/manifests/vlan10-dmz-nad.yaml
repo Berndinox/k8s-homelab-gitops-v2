@@ -4,12 +4,12 @@ metadata:
   name: vlan10-dmz
   namespace: infra
   annotations:
-    k8s.v1.cni.cncf.io/resourceName: macvtap.network.kubevirt.io/vlan10-dmz
+    k8s.v1.cni.cncf.io/resourceName: macvtap.network.kubevirt.io/vlan10
 spec:
   config: |
     {
       "cniVersion": "0.3.1",
-      "name": "vlan10-dmz",
+      "name": "vlan10",
       "type": "macvtap",
       "mtu": 1500
     }
