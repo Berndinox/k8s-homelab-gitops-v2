@@ -26,7 +26,8 @@ spec:
     vmsingle:
       spec:
         retentionPeriod: "14d"
-        extraArgs: {}
+        extraArgs:
+          maxLabelsPerTimeseries: "40"
         storage:
           storageClassName: longhorn
           resources:
