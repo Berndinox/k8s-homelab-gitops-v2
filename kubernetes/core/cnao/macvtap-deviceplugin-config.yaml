@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: macvtap-deviceplugin-config
-  namespace: kubevirt
+  namespace: cluster-network-addons
 data:
   DP_MACVTAP_CONF: |
     [
