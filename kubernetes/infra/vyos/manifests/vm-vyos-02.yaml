@@ -26,9 +26,7 @@ spec:
     spec:
       domain:
         cpu:
-          cores: 4
-          dedicatedCpuPlacement: true
-          isolateEmulatorThread: true
+          cores: 2
         memory:
           guest: 2Gi
         devices:
@@ -100,7 +98,7 @@ spec:
       volumes:
         - name: rootdisk
           containerDisk:
-            image: 10.0.100.11:30500/edge-router:2026.02
+            image: 10.0.100.12:30500/edge-router:1.4.4
         - name: cloudinit
           cloudInitNoCloud:
             secretRef:
