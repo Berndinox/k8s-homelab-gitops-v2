@@ -4,4 +4,9 @@ kind: KubeVirt
 metadata:
   name: kubevirt
   namespace: kubevirt
-spec: {}
+spec:
+  configuration:
+    network:
+      binding:
+        macvtap:
+          domainAttachmentType: tap
